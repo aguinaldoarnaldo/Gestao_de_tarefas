@@ -24,6 +24,3 @@ Copyright © 2026 - Gestão de Tarefas
 
 
 
-
-
-
