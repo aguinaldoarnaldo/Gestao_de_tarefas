@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> primeira tela</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Container Principal */
+.app {
+  width: 1200px;
+  height: 750px;
+  background: #f8fafc;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  display: flex;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 80px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  border-right: 1px solid #e2e8f0;
+}
+
+.sidebar .logo {
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 40px;
+  color: #2563eb;
+}
+
+.sidebar .icon {
+  width: 40px;
+  height: 40px;
+  margin: 15px 0;
+  border-radius: 12px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sidebar .icon:hover {
+  background: #e2e8f0;
+}
+
+/* Conteúdo */
+.content {
+  flex: 1;
+  padding: 30px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search {
+  width: 300px;
+  padding: 10px 15px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.add-btn {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.add-btn:hover {
+  opacity: 0.9;
+}
+
+/* Título */
+.title {
+  margin: 30px 0 20px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Grid de Membros */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* Card */
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  transition: 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  object-fit: cover;
+}
+
+.name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.role {
+  font-size: 14px;
+  color: #64748b;
+  margin: 5px 0 15px;
+}
+
+.profile-btn {
+  background: linear-gradient(to right, #60a5fa, #3b82f6);
+  border: none;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.profile-btn:hover {
+  opacity: 0.9;
+}
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="sidebar">
+    <div class="logo">AF</div>
+    <div class="icon">🏠</div>
+    <div class="icon">👥</div>
+    <div class="icon">📁</div>
+    <div class="icon">📅</div>
+    <div class="icon">⚙️</div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <input class="search" placeholder="Search...">
+      <button class="add-btn">Add Member</button>
+    </div>
+
+    <div class="title">Team Members</div>
+
+    <div class="grid">
+      
+      <!-- Card 1 -->
+      <div class="card">
+        <img class="avatar" src="https://i.pravatar.cc/150?img=1">
+        <div class="name">Alera Martin</div>
+        <div class="role">Developer</div>
+        <button class="profile-btn">View Profile</button>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="card">
+        <img class="avatar" src="https://i.pravatar.cc/150?img=5">
+        <div class="name">Andrea Senah</div>
+        <div class="role">Designer</div>
+        <button class="profile-btn">View Profile</button>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="card">
+        <img class="avatar" src="https://i.pravatar.cc/150?img=8">
+        <div class="name">John Smith</div>
+        <div class="role">Designer</div>
+        <button class="profile-btn">View Profile</button>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="card">
+        <img class="avatar" src="https://i.pravatar.cc/150?img=12">
+        <div class="name">Jasen Naraa</div>
+        <div class="role">Developer</div>
+        <button class="profile-btn">View Profile</button>
+      </div>
+
+      <!-- Linha 2 -->
+      <div class="card">
+        <img class="avatar" src="https://i.pravatar.cc/150?img=14">
+        <div class="name">Janas Barom</div>
+        <div class="role">Developer</div>
+        <button class="profile-btn">View Profile</button>
+      </div>
+
+      <div class="card">
+        <img class="avatar" src="https://i.pravatar.cc/150?img=16">
+        <div class="name">Jasa Aramin</div>
+        <div class="role">Designer</div>
+        <button class="profile-btn">View Profile</button>
+      </div>
+
+      <div class="card">
+        <img class="avatar" src="https://i.pravatar.cc/150?img=18">
+        <div class="name">Tana Nasha</div>
+        <div class="role">Designer</div>
+        <button class="profile-btn">View Profile</button>
+      </div>
+
+      <div class="card">
+        <img class="avatar" src="https://i.pravatar.cc/150?img=20">
+        <div class="name">Jesn Halard</div>
+        <div class="role">Designer</div>
+        <button class="profile-btn">View Profile</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
