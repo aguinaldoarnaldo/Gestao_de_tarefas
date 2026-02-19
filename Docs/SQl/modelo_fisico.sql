@@ -1,33 +1,52 @@
-create DATABASE If not EXISTS GestaoTarefas CHARACTER set utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- Banco de Dados para Gestão de Tarefas com Anexos
+CREATE DATABASE IF NOT EXISTS GestaoTarefas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE GestaoTarefas;
 
-use GestaoTarefas;
-
-create TABLE Utilizador(
-	id int AUTO_INCREMENT PRIMARY key,
-    nome varchar(100) not null,
-    email varchar(100) not null UNIQUE,
-    senha varchar(200) not null,
-    tipo ENUM("Admin","membro") not null
+-- Tabela de Utilizadores
+CREATE TABLE Utilizador (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(200) NOT NULL,
+    tipo ENUM('admin', 'membro') NOT NULL DEFAULT 'membro',
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-create TABLE permissao(
-	id int AUTO_INCREMENT PRIMARY key,
-    nome varchar(100) not null
+-- Tabela de Tarefas
+CREATE TABLE Tarefa (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    status ENUM('Pendente', 'Em Andamento', 'Concluída') NOT NULL DEFAULT 'Pendente',
+    data_vencimento DATE DEFAULT NULL,
+    utilizador_id INT NOT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (utilizador_id) REFERENCES Utilizador(id) ON DELETE CASCADE
 );
 
-CREATE TABLE permissao_utilizador(
-	utilizador_id int not null,
-    permissao_id int not null,
-    PRIMARY key (utilizador_id, permissao_id),
-    FOREIGN key (utilizador_id) REFERENCES utilizador(id) on DELETE CASCADE,
-    FOREIGN key (permissao_id) REFERENCES permissao(id) on DELETE CASCADE
+-- Tabela de Anexos (Arquivos)
+CREATE TABLE Anexo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_arquivo VARCHAR(255) NOT NULL,
+    caminho_arquivo VARCHAR(500) NOT NULL,
+    tipo_arquivo VARCHAR(100),
+    tamanho_arquivo INT,
+    tarefa_id INT NOT NULL,
+    data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tarefa_id) REFERENCES Tarefa(id) ON DELETE CASCADE
 );
 
-CREATE TABLE tarefa(
-	id int AUTO_INCREMENT  PRIMARY key,
-    titulo varchar(400) not null,
-    status enum('Pendente','Em andamento', 'Concluida') not null,
-    data_vencimento date not null,
-    utililzador_id int not null,
-    FOREIGN key (utilizador_id) REFERENCES utilizador(id) on DELETE CASCADE
+-- Tabela de Permissões (Opcional, mas mantida se necessário para o sistema)
+CREATE TABLE Permissao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Permissao_Utilizador (
+    utilizador_id INT NOT NULL,
+    permissao_id INT NOT NULL,
+    PRIMARY KEY (utilizador_id, permissao_id),
+    FOREIGN KEY (utilizador_id) REFERENCES Utilizador(id) ON DELETE CASCADE,
+    FOREIGN KEY (permissao_id) REFERENCES Permissao(id) ON DELETE CASCADE
 );
