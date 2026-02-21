@@ -93,7 +93,7 @@ const MainLayout = ({ children, title }) => {
         </SidebarNav>
 
         <SidebarFooter>
-          <NavItem onClick={() => navigate('#')}>
+          <NavItem onClick={() => navigate('/settings')}>
             <Settings />
             <span>Configurações</span>
           </NavItem>
