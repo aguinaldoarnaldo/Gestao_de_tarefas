@@ -1,284 +1,193 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import apiService from '../../services/api';
+import { Search, ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react';
 import TaskModal from '../../components/TaskModal/TaskModal';
-import {
-  CalendarWrapper,
-  CalendarContainer,
-  CalendarMain,
-  CalendarHeader,
-  CalendarTitle,
-  MonthSelector,
-  DropdownButton,
-  NavigationButton,
-  WeekDaysHeader,
-  DayHeader,
-  CalendarGrid,
-  DayCell,
-  DayNumber,
-  TaskBadges,
-  TaskBadge,
-  StatusDot,
-  SidePanel,
-  SidePanelTitle,
-  TasksList,
-  TaskCard,
-  TaskTitle,
-  TaskStatus,
-  TaskMeta,
-  EmptyMessage
-} from './Calendar.styles';
+import apiService from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import './Calendar.styles.js';
+
+// Gera matriz de dias do mês para exibição
+function generateCalendarMatrix(year, month) {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const matrix = [];
+  let week = [];
+  let dayOfWeek = firstDay.getDay();
+  // Preenche dias do mês anterior
+  for (let i = 0; i < dayOfWeek; i++) week.push(null);
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    week.push(new Date(year, month, d));
+    if (week.length === 7) {
+      matrix.push(week);
+      week = [];
+    }
+  }
+  // Preenche dias do próximo mês
+  if (week.length) {
+    while (week.length < 7) week.push(null);
+    matrix.push(week);
+  }
+  return matrix;
+}
+
+
 
 const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const today = new Date();
+  const { user } = useAuth();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalDate, setModalDate] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const matrix = generateCalendarMatrix(currentYear, currentMonth);
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+    // eslint-disable-next-line
+  }, [currentMonth, currentYear]);
 
   const fetchTasks = async () => {
+    setLoading(true);
     try {
       const data = await apiService.getTasks();
-      setTasks(data);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
+      setTasks(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setTasks([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const getDaysInMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  // Busca tarefas do mês
+  const getTasksForDay = (date) => {
+    if (!date) return [];
+    const dStr = date.toISOString().slice(0, 10);
+    return tasks.filter(t => t.data_vencimento && t.data_vencimento.slice(0, 10) === dStr);
   };
 
-  const getFirstDayOfMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  };
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const weekDays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-  const getTasksForDay = (day) => {
-    if (!day) return [];
-    const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-      .toISOString()
-      .split('T')[0];
-    
-    return tasks.filter(task => {
-      if (task.data_vencimento) {
-        return task.data_vencimento.split('T')[0] === dateStr;
-      }
-      return false;
-    });
-  };
-
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-  };
-
-  const handleTaskClick = (task) => {
-    setSelectedTask(task);
-    setIsModalOpen(true);
-  };
-
-  const handleCreateTaskForDay = (day) => {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    setSelectedDate(date);
+  // Modal handlers
+  const openModal = (date) => {
+    setModalDate(date);
     setSelectedTask(null);
-    setIsModalOpen(true);
+    setModalOpen(true);
   };
+  const closeModal = () => setModalOpen(false);
 
-  const handleSaveTask = async (taskData) => {
+  const handleSaveTask = async (formData) => {
+    // formData: { titulo, descricao, status, data_vencimento }
     try {
-      if (selectedTask) {
-        await apiService.updateTask(selectedTask.id, taskData);
-      } else {
-        await apiService.createTask(taskData);
-      }
+      await apiService.createTask({
+        ...formData,
+        data_vencimento: modalDate.toISOString().slice(0, 10),
+      });
       await fetchTasks();
-      setIsModalOpen(false);
-    } catch (error) {
-      throw error;
+    } catch (e) {
+      throw e;
     }
   };
-
-  const handleDeleteTask = async (taskId) => {
-    if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
-    
-    try {
-      await apiService.deleteTask(taskId);
-      await fetchTasks();
-    } catch (error) {
-      alert(error.message || 'Erro ao excluir tarefa');
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Concluída':
-        return '#10b981';
-      case 'Em Andamento':
-        return '#0061ff';
-      case 'Pendente':
-        return '#f59e0b';
-      default:
-        return '#94a3b8';
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'Concluída':
-        return 'Concluída';
-      case 'Em Andamento':
-        return 'Em Andamento';
-      case 'Pendente':
-        return 'Pendente';
-      default:
-        return status;
-    }
-  };
-
-  const monthYear = currentDate.toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric'
-  });
-
-  const daysInMonth = getDaysInMonth(currentDate);
-  const firstDay = getFirstDayOfMonth(currentDate);
-  const days = [];
-
-  // Preencher dias vazios do mês anterior
-  for (let i = 0; i < firstDay; i++) {
-    days.push(null);
-  }
-
-  // Adicionar dias do mês atual
-  for (let day = 1; day <= daysInMonth; day++) {
-    days.push(day);
-  }
-
-  const weekDayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <CalendarWrapper>
-      <CalendarMain>
-        <CalendarHeader>
-          <CalendarTitle>Calendar</CalendarTitle>
-          <MonthSelector>
-            <DropdownButton>Monthly ▼</DropdownButton>
-            <NavigationButton onClick={handlePrevMonth}>
-              <ChevronLeft size={18} />
-            </NavigationButton>
-            <NavigationButton onClick={handleNextMonth}>
-              <ChevronRight size={18} />
-            </NavigationButton>
-          </MonthSelector>
-        </CalendarHeader>
+    <div style={{ display: 'flex', gap: 32, padding: 32, background: '#f6fafd', minHeight: '100vh', fontFamily: 'Inter, Arial, sans-serif' }}>
+      {/* Sidebar (simples) */}
+      <aside style={{ width: 60, background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e2e8f0', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 12 }}>
+        <div style={{ width: 36, height: 36, background: '#e0e7ef', borderRadius: '50%', margin: '16px 0' }} />
+        <div style={{ flex: 1 }} />
+        <div style={{ width: 24, height: 24, background: '#e0e7ef', borderRadius: '50%', margin: '16px 0' }} />
+      </aside>
 
-        <CalendarContainer>
-          <WeekDaysHeader>
-            {weekDayLabels.map((day) => (
-              <DayHeader key={day}>{day}</DayHeader>
-            ))}
-          </WeekDaysHeader>
-
-          <CalendarGrid>
-            {days.map((day, index) => {
-              const dayTasks = day ? getTasksForDay(day) : [];
-              const isToday =
-                day &&
-                new Date().getDate() === day &&
-                new Date().getMonth() === currentDate.getMonth() &&
-                new Date().getFullYear() === currentDate.getFullYear();
-
-              return (
-                <DayCell
-                  key={index}
-                  isEmpty={!day}
-                  isToday={isToday}
-                  onClick={() => day && handleCreateTaskForDay(day)}
-                >
-                  {day && (
-                    <>
-                      <DayNumber isToday={isToday}>{day}</DayNumber>
-                      <TaskBadges>
-                        {dayTasks.slice(0, 3).map((task, idx) => (
-                          <TaskBadge
-                            key={task.id}
-                            color={getStatusColor(task.status)}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleTaskClick(task);
-                            }}
-                            title={task.titulo}
-                          >
-                            <StatusDot color={getStatusColor(task.status)} />
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
-                              {task.titulo}
-                            </span>
-                          </TaskBadge>
+      {/* Conteúdo principal */}
+      <main style={{ flex: 2, background: '#fff', borderRadius: 18, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', padding: 32, minWidth: 600 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 700, color: '#2d3748', margin: 0, flex: 1 }}>Calendário</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => setCurrentMonth(m => m === 0 ? 11 : m - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, padding: 4, transition: 'background 0.2s' }}><ChevronLeft /></button>
+            <span style={{ fontWeight: 600 }}>{monthNames[currentMonth]} {currentYear}</span>
+            <button onClick={() => setCurrentMonth(m => m === 11 ? 0 : m + 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, padding: 4, transition: 'background 0.2s' }}><ChevronRight /></button>
+          </div>
+          <div style={{ marginLeft: 24, background: '#f1f5f9', borderRadius: 8, display: 'flex', alignItems: 'center', padding: '4px 12px', boxShadow: '0 1px 2px #e2e8f0' }}>
+            <Search size={18} style={{ color: '#64748b', marginRight: 6 }} />
+            <input placeholder="Buscar" style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 15 }} />
+          </div>
+        </div>
+        {/* Calendário */}
+        <div style={{ background: '#f7fafc', borderRadius: 12, border: '1px solid #e2e8f0', padding: 18, boxShadow: '0 2px 8px #f1f5f9' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                {weekDays.map(day => (
+                  <th key={day} style={{ color: '#64748b', fontWeight: 600, padding: 6, textAlign: 'center', fontSize: 15 }}>{day}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {matrix.map((week, i) => (
+                <tr key={i}>
+                  {week.map((date, j) => (
+                    <td key={j} style={{
+                      minWidth: 60,
+                      height: 64,
+                      background: date && date.toDateString() === today.toDateString() ? '#e0e7ef' : 'transparent',
+                      borderRadius: 10,
+                      verticalAlign: 'top',
+                      padding: 4,
+                      position: 'relative',
+                      border: '1px solid #f1f5f9',
+                      cursor: date ? 'pointer' : 'default',
+                      transition: 'background 0.15s',
+                    }}
+                    onClick={() => date && openModal(date)}
+                    >
+                      <div style={{ fontWeight: 600, color: '#334155', fontSize: 15, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {date ? date.getDate() : ''}
+                        {date && <PlusCircle size={14} style={{ color: '#38bdf8', marginLeft: 2, opacity: 0.7 }} />}
+                      </div>
+                      <div style={{ marginTop: 2 }}>
+                        {getTasksForDay(date).map(task => (
+                          <div key={task.id} style={{ fontSize: 11, color: task.status === 'Concluída' ? '#10b981' : task.status === 'Em Andamento' ? '#0ea5e9' : '#e11d48', background: '#fff', borderRadius: 6, padding: '1px 6px', marginBottom: 2, boxShadow: '0 1px 2px #e2e8f0', fontWeight: 500 }}>{task.titulo}</div>
                         ))}
-                        {dayTasks.length > 3 && (
-                          <div style={{ fontSize: '0.55rem', color: '#94a3b8', paddingLeft: '0.2rem' }}>
-                            +{dayTasks.length - 3}
-                          </div>
-                        )}
-                      </TaskBadges>
-                    </>
-                  )}
-                </DayCell>
-              );
-            })}
-          </CalendarGrid>
-        </CalendarContainer>
-      </CalendarMain>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      <SidePanel>
-        <SidePanelTitle>Tasks</SidePanelTitle>
-        <TasksList>
+        {/* Modal de cadastro de tarefa estilizado */}
+        {modalOpen && (
+          <TaskModal
+            isOpen={modalOpen}
+            onClose={closeModal}
+            onSave={handleSaveTask}
+            task={null}
+            defaultDate={modalDate}
+          />
+        )}
+      </main>
+
+      {/* Painel lateral de tarefas */}
+      <aside style={{ flex: 1, background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e2e8f0', padding: 24, minWidth: 260 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 700, color: '#2d3748', marginBottom: 18 }}>Tarefas</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 520, overflowY: 'auto' }}>
           {loading ? (
-            <EmptyMessage>Carregando...</EmptyMessage>
+            <div style={{ color: '#64748b', textAlign: 'center', marginTop: 32 }}>Carregando...</div>
           ) : tasks.length === 0 ? (
-            <EmptyMessage>Nenhuma tarefa</EmptyMessage>
-          ) : (
-            tasks.slice(0, 5).map((task) => (
-              <TaskCard
-                key={task.id}
-                onClick={() => handleTaskClick(task)}
-              >
-                <TaskTitle>{task.titulo}</TaskTitle>
-                <TaskStatus color={getStatusColor(task.status)}>
-                  {getStatusLabel(task.status)}
-                </TaskStatus>
-                <TaskMeta>
-                  📎 <span>13</span>
-                  💬 <span>8</span>
-                </TaskMeta>
-              </TaskCard>
-            ))
-          )}
-        </TasksList>
-      </SidePanel>
-
-      <TaskModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedDate(null);
-        }}
-        task={selectedTask}
-        onSave={handleSaveTask}
-        onDelete={selectedTask ? () => handleDeleteTask(selectedTask.id) : undefined}
-        initialDate={selectedDate}
-      />
-    </CalendarWrapper>
+            <div style={{ color: '#64748b', textAlign: 'center', marginTop: 32 }}>Nenhuma tarefa encontrada.</div>
+          ) : tasks.map(task => (
+            <div key={task.id} style={{ background: '#f7fafc', borderRadius: 8, padding: 12, boxShadow: '0 1px 2px #e2e8f0', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ fontWeight: 600, color: '#334155', fontSize: 15 }}>{task.titulo}</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>{task.status} - {task.data_vencimento && task.data_vencimento.slice(0, 10)}</div>
+            </div>
+          ))}
+        </div>
+      </aside>
+    </div>
   );
 };
 
