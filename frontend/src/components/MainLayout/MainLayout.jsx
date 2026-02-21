@@ -58,7 +58,7 @@ const MainLayout = ({ children, title }) => {
     menuItems.push({ icon: <UsersIcon />, label: 'Utilizadores', path: '/users' });
   }
 
-  menuItems.push({ icon: <Calendar />, label: 'Calendário', path: '#' });
+  menuItems.push({ icon: <Calendar />, label: 'Calendário', path: '/calendar' });
 
   return (
     <LayoutContainer>

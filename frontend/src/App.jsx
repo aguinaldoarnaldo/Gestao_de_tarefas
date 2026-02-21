@@ -8,6 +8,7 @@ import Home from './pages/Home/Home';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Users from './pages/Users/Users';
 import Profile from './pages/Profile/Profile';
+import Calendar from './pages/Calendar/Calendar';
 import LoadingScreen from './components/LoadingScreen/LoadingScreen';
 import MainLayout from './components/MainLayout/MainLayout';
 
@@ -61,6 +62,16 @@ function App() {
                 <ProtectedRoute>
                   <MainLayout title="O meu Perfil">
                     <Profile />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  <MainLayout title="Calendário">
+                    <Calendar />
                   </MainLayout>
                 </ProtectedRoute>
               }
