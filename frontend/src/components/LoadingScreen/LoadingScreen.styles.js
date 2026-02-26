@@ -1,18 +1,35 @@
 import styled, { keyframes } from 'styled-components';
 
 const pulse = keyframes`
-  0% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.8; }
+  0%   { transform: scale(1);    opacity: 0.9; }
+  50%  { transform: scale(1.12); opacity: 1;   }
+  100% { transform: scale(1);    opacity: 0.9; }
+`;
+
+const shimmer = keyframes`
+  0%   { left: -100%; }
+  60%  { left: 100%;  }
+  100% { left: 100%;  }
+`;
+
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+`;
+
+const spin = keyframes`
+  to { transform: rotate(360deg); }
+`;
+
+const dot = keyframes`
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40%            { opacity: 1;   transform: scale(1);   }
 `;
 
 export const LoadingContainer = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #ffffff;
+  inset: 0;
+  background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 50%, #e8f0fe 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -30,52 +47,74 @@ export const LoadingContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
+  animation: ${fadeInUp} 0.5s ease-out;
 `;
 
 export const LogoPulse = styled.div`
-  animation: ${pulse} 1.5s ease-in-out infinite;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #0061ff, #8b5cf6);
+  border-radius: 22px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 8px;
+  color: white;
+  box-shadow: 0 12px 40px rgba(0, 97, 255, 0.35);
+  animation: ${pulse} 1.8s ease-in-out infinite;
 `;
 
-const loading = keyframes`
-  0% {
-    left: -100%;
-  }
-  50% {
-    left: 100%;
-  }
-  100% {
-    left: 100%;
-  }
+export const BrandName = styled.h1`
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
 `;
 
 export const LoadingBarContainer = styled.div`
-  width: 200px;
-  height: 4px;
-  background-color: #ebecf0;
-  border-radius: 2px;
+  width: 220px;
+  height: 5px;
+  background: rgba(0, 97, 255, 0.12);
+  border-radius: 100px;
   overflow: hidden;
   position: relative;
 `;
 
 export const LoadingBar = styled.div`
-  width: 100%;
+  width: 60%;
   height: 100%;
-  background-color: #0061ff;
+  background: linear-gradient(90deg, #0061ff, #8b5cf6);
+  border-radius: 100px;
   position: absolute;
   left: -100%;
-  animation: ${loading} 1.5s infinite linear;
+  animation: ${shimmer} 1.6s infinite ease-in-out;
+`;
+
+export const DotsRow = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+`;
+
+export const Dot = styled.span`
+  width: 8px;
+  height: 8px;
+  background: #0061ff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: ${dot} 1.4s ease-in-out infinite;
+
+  &:nth-child(2) { animation-delay: 0.2s; background: #4f8eff; }
+  &:nth-child(3) { animation-delay: 0.4s; background: #8b5cf6; }
 `;
 
 export const LoadingText = styled.p`
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 0.95rem;
-  color: #44546F;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.9rem;
+  color: #6b7280;
   font-weight: 500;
-  letter-spacing: 0.5px;
   margin: 0;
+  letter-spacing: 0.01em;
 `;

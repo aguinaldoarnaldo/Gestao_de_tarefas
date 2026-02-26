@@ -26,7 +26,13 @@ exports.getProfile = async (req, res) => {
 // GET /api/users
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.getAll();
+    const { search } = req.query;
+    let users;
+    if (search) {
+      users = await User.searchByNome(search);
+    } else {
+      users = await User.getAll();
+    }
     res.json(users);
   } catch (error) {
     handleServerError(res, error, 'Erro ao buscar usuários.');
@@ -138,5 +144,51 @@ exports.getUserStats = async (req, res) => {
     res.json(stats);
   } catch (error) {
     handleServerError(res, error, 'Erro ao buscar estatísticas.');
+  }
+};
+
+// Permissions
+const Permission = require('../models/Permission');
+
+exports.getAllPermissions = async (req, res) => {
+  try {
+    const permissions = await Permission.getAll();
+    res.json(permissions);
+  } catch (error) {
+    handleServerError(res, error, 'Erro ao buscar permissões.');
+  }
+};
+
+exports.getUserPermissions = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const permissions = await Permission.getByUserId(id);
+    res.json(permissions);
+  } catch (error) {
+    handleServerError(res, error, 'Erro ao buscar permissões do utilizador.');
+  }
+};
+
+exports.updateUserPermissions = async (req, res) => {
+  try {
+    const { id } = req.params; // User ID
+    const { permissionIds } = req.body; // Array of IDs
+
+    if (!Array.isArray(permissionIds)) {
+      return res.status(400).json({ message: 'Lista de permissões inválida.' });
+    }
+
+    // Simple approach: remove all and re-add
+    const currentPermissions = await Permission.getByUserId(id);
+    for (const p of currentPermissions) {
+      await Permission.removeFromUser(id, p.id);
+    }
+    for (const pId of permissionIds) {
+      await Permission.assignToUser(id, pId);
+    }
+
+    res.json({ message: 'Permissões atualizadas com sucesso!' });
+  } catch (error) {
+    handleServerError(res, error, 'Erro ao atualizar permissões.');
   }
 };

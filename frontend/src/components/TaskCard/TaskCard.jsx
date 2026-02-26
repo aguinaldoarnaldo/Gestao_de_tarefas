@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
-import { Clock, Paperclip, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
-import AttachmentManager from '../AttachmentManager/AttachmentManager';
+import { 
+  Clock, 
+  Paperclip, 
+  MoreHorizontal, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  Users as UsersIcon 
+} from 'lucide-react';
 import {
   TaskCardContainer,
   CardHeader,
@@ -11,31 +18,11 @@ import {
   MenuItem,
   CardDesc,
   CardFooter,
-  CardAttachments,
-  CardDate,
-  CardStatusIndicator,
-  TaskDetailsOverlay,
-  TaskDetailsModal,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  TaskInfo,
-  InfoItem,
-  StatusBadge
+  CardDate
 } from './TaskCard.styles';
 
-const TaskCard = ({ task, onEdit, onDelete, canEdit = true }) => {
-  const [showDetails, setShowDetails] = useState(false);
+const TaskCard = ({ task, onEdit, onDelete, onViewDetails, canEdit = true }) => {
   const [showMenu, setShowMenu] = useState(false);
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Pendente': return '#94a3b8';
-      case 'Em Andamento': return '#0061ff';
-      case 'Concluída': return '#10b981';
-      default: return '#94a3b8';
-    }
-  };
 
   const isOverdue = (dueDate) => {
     return new Date(dueDate) < new Date() && task.status !== 'Concluída';
@@ -51,110 +38,115 @@ const TaskCard = ({ task, onEdit, onDelete, canEdit = true }) => {
   };
 
   return (
-    <>
-      <TaskCardContainer>
-        <CardHeader>
-          <CardTitle>{task.titulo}</CardTitle>
-          <CardMenu>
-            <MenuButton onClick={() => setShowMenu(!showMenu)}>
-              <MoreHorizontal size={16} />
-            </MenuButton>
-            
-            {showMenu && (
-              <DropdownMenu>
-                <MenuItem onClick={() => {
-                  setShowDetails(!showDetails);
-                  setShowMenu(false);
-                }}>
-                  <Eye size={14} />
-                  Ver detalhes
-                </MenuItem>
-                {canEdit && (
-                  <>
-                    <MenuItem onClick={() => {
-                      onEdit(task);
+    <TaskCardContainer onClick={() => onViewDetails && onViewDetails(task)}>
+      <CardHeader>
+        <CardTitle>{task.titulo}</CardTitle>
+        <CardMenu onClick={(e) => e.stopPropagation()}>
+          <MenuButton onClick={() => setShowMenu(!showMenu)}>
+            <MoreHorizontal size={16} />
+          </MenuButton>
+          
+          {showMenu && (
+            <DropdownMenu>
+              <MenuItem onClick={() => {
+                onViewDetails && onViewDetails(task);
+                setShowMenu(false);
+              }}>
+                <Eye size={14} />
+                Ver detalhes
+              </MenuItem>
+              {canEdit && (
+                <>
+                  <MenuItem onClick={() => {
+                    onEdit(task);
+                    setShowMenu(false);
+                  }}>
+                    <Edit size={14} />
+                    Editar
+                  </MenuItem>
+                  <MenuItem 
+                    className="delete"
+                    onClick={() => {
+                      onDelete(task.id);
                       setShowMenu(false);
-                    }}>
-                      <Edit size={14} />
-                      Editar
-                    </MenuItem>
-                    <MenuItem 
-                      className="delete"
-                      onClick={() => {
-                        onDelete(task.id);
-                        setShowMenu(false);
-                      }}
-                    >
-                      <Trash2 size={14} />
-                      Excluir
-                    </MenuItem>
-                  </>
-                )}
-              </DropdownMenu>
-            )}
-          </CardMenu>
-        </CardHeader>
-        
-        <CardDesc>{task.descricao}</CardDesc>
-        
-        <CardFooter>
-          <CardAttachments>
-            <Paperclip size={14} />
-            <span>{task.attachments || 0}</span>
-          </CardAttachments>
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    Excluir
+                  </MenuItem>
+                </>
+              )}
+            </DropdownMenu>
+          )}
+        </CardMenu>
+      </CardHeader>
+      
+      <CardDesc>{task.descricao}</CardDesc>
+      
+      <CardFooter>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <CardDate className={isOverdue(task.data_vencimento) ? 'overdue' : ''}>
             <Clock size={14} />
             <span>{formatDate(task.data_vencimento)}</span>
           </CardDate>
-        </CardFooter>
+          <div style={{ 
+            fontSize: '0.7rem', 
+            fontWeight: 800, 
+            padding: '2px 8px', 
+            borderRadius: '6px',
+            background: task.prioridade === 'Alta' ? '#fee2e2' : task.prioridade === 'Média' ? '#fef3c7' : '#dcfce7',
+            color: task.prioridade === 'Alta' ? '#ef4444' : task.prioridade === 'Média' ? '#d97706' : '#16a34a'
+          }}>
+            {task.prioridade}
+          </div>
+        </div>
         
-        <CardStatusIndicator color={getStatusColor(task.status)} />
-      </TaskCardContainer>
-
-      {/* Task Details Modal */}
-      {showDetails && (
-        <TaskDetailsOverlay>
-          <TaskDetailsModal>
-            <ModalHeader>
-              <h2>{task.titulo}</h2>
-              <ModalCloseButton onClick={() => setShowDetails(false)}>
-                ×
-              </ModalCloseButton>
-            </ModalHeader>
-            
-            <ModalBody>
-              <TaskInfo>
-                <InfoItem>
-                  <label>Status:</label>
-                  <StatusBadge color={getStatusColor(task.status)}>
-                    {task.status}
-                  </StatusBadge>
-                </InfoItem>
-                
-                <InfoItem>
-                  <label>Data de Vencimento:</label>
-                  <span className={isOverdue(task.data_vencimento) ? 'overdue' : ''}>
-                    {formatDate(task.data_vencimento)}
-                  </span>
-                </InfoItem>
-                
-                <InfoItem>
-                  <label>Descrição:</label>
-                  <p>{task.descricao}</p>
-                </InfoItem>
-              </TaskInfo>
-              
-              {/* Attachments Section */}
-              <AttachmentManager 
-                taskId={task.id}
-                userId={task.utilizador_id}
-                canEdit={canEdit}
-              />
-            </ModalBody>
-          </TaskDetailsModal>
-        </TaskDetailsOverlay>
-      )}
-    </>
+        <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+          {task.membros && task.membros.length > 0 && (
+            <div style={{ display: 'flex', position: 'relative', height: '24px' }}>
+              {task.membros.slice(0, 3).map((m, i) => (
+                <div key={m.id} title={m.nome} style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: `hsl(${m.id * 137.5 % 360}, 60%, 60%)`,
+                  border: '2px solid white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.6rem',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  marginLeft: i === 0 ? '0' : '-8px',
+                  zIndex: 3 - i
+                }}>
+                  {m.nome.substring(0, 1).toUpperCase()}
+                </div>
+              ))}
+              {task.membros.length > 3 && (
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: '#e2e8f0',
+                  border: '2px solid white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.6rem',
+                  color: '#64748b',
+                  fontWeight: 'bold',
+                  marginLeft: '-8px',
+                  zIndex: 0
+                }}>
+                  +{task.membros.length - 3}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </CardFooter>
+    </TaskCardContainer>
   );
 };
 
