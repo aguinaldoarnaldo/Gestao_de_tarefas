@@ -17,12 +17,12 @@ export const LoadingText = styled.div`
 `;
 
 export const UploadArea = styled.div`
-  border: 2px dashed ${props => props.dragActive ? '#0061ff' : '#cbd5e1'};
+  border: 2px dashed ${props => props.$dragActive ? '#0061ff' : '#cbd5e1'};
   border-radius: 12px;
   padding: 2rem;
   text-align: center;
   transition: all 0.3s;
-  background: ${props => props.dragActive ? 'rgba(0, 97, 255, 0.05)' : '#f8fafc'};
+  background: ${props => props.$dragActive ? 'rgba(0, 97, 255, 0.05)' : '#f8fafc'};
 `;
 
 export const UploadLabel = styled.label`

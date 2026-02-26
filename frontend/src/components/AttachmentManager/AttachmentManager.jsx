@@ -129,7 +129,7 @@ const AttachmentManager = ({ taskId }) => {
   return (
     <ManagerContainer>
       <UploadArea
-        dragActive={dragActive}
+        $dragActive={dragActive}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}

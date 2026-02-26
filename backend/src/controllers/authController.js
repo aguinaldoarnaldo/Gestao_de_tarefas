@@ -1,11 +1,17 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 exports.register = async (req, res) => {
   try {
     const { nome, email, senha, tipo } = req.body;
+
+    if (!nome || !email || !senha) {
+      return res.status(400).json({ message: 'Nome, email e senha são obrigatórios.' });
+    }
 
     // Check if user exists
     const existingUser = await User.findByEmail(email);
@@ -27,14 +33,18 @@ exports.register = async (req, res) => {
 
     res.status(201).json({ message: 'Usuário registrado com sucesso!', userId });
   } catch (error) {
-    console.error('REGISTER ERROR:', error);
-    res.status(500).json({ message: 'Erro ao registrar usuário.' });
+    console.error('REGISTER ERROR:', error.message);
+    res.status(500).json({ message: 'Erro ao registrar usuário: ' + error.message });
   }
 };
 
 exports.login = async (req, res) => {
   try {
     const { email, senha } = req.body;
+
+    if (!email || !senha) {
+      return res.status(400).json({ message: 'Email e senha são obrigatórios.' });
+    }
 
     const user = await User.findByEmail(email);
     if (!user) {
@@ -46,10 +56,16 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Email ou senha incorretos.' });
     }
 
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('JWT_SECRET não definido!');
+      return res.status(500).json({ message: 'Configuração do servidor incorreta.' });
+    }
+
     const token = jwt.sign(
       { id: user.id, tipo: user.tipo },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      jwtSecret,
+      { expiresIn: '7d' }
     );
 
     res.json({
@@ -62,7 +78,7 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('LOGIN ERROR:', error);
-    res.status(500).json({ message: 'Erro ao fazer login.' });
+    console.error('LOGIN ERROR:', error.message);
+    res.status(500).json({ message: 'Erro ao fazer login: ' + error.message });
   }
 };

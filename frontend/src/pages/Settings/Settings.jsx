@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Lock, Bell, Moon, Save, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { User, Lock, Bell, Moon, Save, CheckCircle, Globe, Shield, Trash2, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 import './Settings.css';
@@ -9,20 +9,26 @@ const Settings = () => {
 
   const [profile, setProfile] = useState({ nome: '', email: '' });
   const [password, setPassword] = useState({ senhaAtual: '', novaSenha: '', confirmarSenha: '' });
-  const [notifications, setNotifications] = useState({ email: true, desktop: true });
+  const [notifications, setNotifications] = useState({ email: true, desktop: true, mobile: false });
   const [preferences, setPreferences] = useState({ darkMode: false, language: 'pt' });
+  
   const [success, setSuccess] = useState('');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('account');
 
+  // Load initial state from storage safely
   useEffect(() => {
     if (user) {
       setProfile({ nome: user.nome || '', email: user.email || '' });
-      const storedNotif = JSON.parse(localStorage.getItem('settings_notifications') || 'null');
-      const storedPrefs = JSON.parse(localStorage.getItem('settings_preferences') || 'null');
-      if (storedNotif) setNotifications(storedNotif);
-      if (storedPrefs) setPreferences(storedPrefs);
+      try {
+        const storedNotif = sessionStorage.getItem('settings_notifications');
+        const storedPrefs = sessionStorage.getItem('settings_preferences');
+        if (storedNotif) setNotifications(JSON.parse(storedNotif));
+        if (storedPrefs) setPreferences(JSON.parse(storedPrefs));
+      } catch (e) {
+        console.error("Error loading settings from storage", e);
+      }
     }
   }, [user]);
 
@@ -41,11 +47,12 @@ const Settings = () => {
   const saveProfile = async (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!profile.nome.trim()) newErrors.nome = 'Nome é obrigatório';
-    if (!profile.email.trim()) newErrors.email = 'Email é obrigatório';
+    if (!profile.nome?.trim()) newErrors.nome = 'Nome é obrigatório';
+    if (!profile.email?.trim()) newErrors.email = 'Email é obrigatório';
     if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
 
     setSaving(true);
+    setErrors({});
     try {
       await apiService.updateUserProfile(profile);
       setSuccess('Perfil atualizado com sucesso');
@@ -62,13 +69,17 @@ const Settings = () => {
     e.preventDefault();
     const newErrors = {};
     if (!password.senhaAtual) newErrors.senhaAtual = 'Senha atual é obrigatória';
-    if (!password.novaSenha || password.novaSenha.length < 6) newErrors.novaSenha = 'Nova senha precisa ter pelo menos 6 caracteres';
-    if (password.novaSenha !== password.confirmarSenha) newErrors.confirmarSenha = 'Senhas não coincidem';
+    if (!password.novaSenha || password.novaSenha.length < 6) newErrors.novaSenha = 'A nova senha deve ter pelo menos 6 caracteres';
+    if (password.novaSenha !== password.confirmarSenha) newErrors.confirmarSenha = 'As senhas não coincidem';
     if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
 
     setSaving(true);
+    setErrors({});
     try {
-      await apiService.updatePassword({ senhaAtual: password.senhaAtual, novaSenha: password.novaSenha });
+      await apiService.updatePassword({ 
+        senhaAtual: password.senhaAtual, 
+        novaSenha: password.novaSenha 
+      });
       setSuccess('Senha alterada com sucesso');
       setPassword({ senhaAtual: '', novaSenha: '', confirmarSenha: '' });
       setTimeout(() => setSuccess(''), 3000);
@@ -80,122 +91,193 @@ const Settings = () => {
   };
 
   const toggleNotification = (key) => {
-    const updated = { ...notifications, [key]: !notifications[key] };
-    setNotifications(updated);
-    localStorage.setItem('settings_notifications', JSON.stringify(updated));
+    setNotifications(prev => {
+      const updated = { ...prev, [key]: !prev[key] };
+      sessionStorage.setItem('settings_notifications', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const togglePreference = (key) => {
-    const updated = { ...preferences, [key]: !preferences[key] };
-    setPreferences(updated);
-    localStorage.setItem('settings_preferences', JSON.stringify(updated));
+    setPreferences(prev => {
+      const updated = { ...prev, [key]: !prev[key] };
+      sessionStorage.setItem('settings_preferences', JSON.stringify(updated));
+      if (key === 'darkMode') {
+        document.body.classList.toggle('dark-mode', updated.darkMode);
+      }
+      return updated;
+    });
   };
 
-  const renderTabContent = () => {
+  const renderTabContent = useCallback(() => {
     switch (activeTab) {
       case 'account':
         return (
-          <section className="settings-card">
-            <h3><User size={18} /> Conta</h3>
+          <div className="settings-card" key="account-tab">
+            <h3><User size={20} /> Conta e Perfil</h3>
             <form onSubmit={saveProfile}>
               {errors.submit && <div className="error-banner">{errors.submit}</div>}
-              <label>Nome</label>
-              <input name="nome" value={profile.nome} onChange={handleProfileChange} />
-
-              <label>Email</label>
-              <input name="email" value={profile.email} onChange={handleProfileChange} />
-
-              <button className="btn-primary" type="submit" disabled={saving}><Save size={16} /> Salvar Perfil</button>
+              <div className="form-group">
+                <label>Nome Completo</label>
+                <input name="nome" value={profile.nome} onChange={handleProfileChange} />
+                {errors.nome && <span className="error-text">{errors.nome}</span>}
+              </div>
+              <div className="form-group">
+                <label>E-mail</label>
+                <input name="email" value={profile.email} onChange={handleProfileChange} />
+                {errors.email && <span className="error-text">{errors.email}</span>}
+              </div>
+              <button className="btn-save" type="submit" disabled={saving}>
+                {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                Salvar Alterações
+              </button>
             </form>
-          </section>
+          </div>
         );
 
       case 'security':
         return (
-          <section className="settings-card">
-            <h3><Lock size={18} /> Segurança</h3>
+          <div className="settings-card" key="security-tab">
+            <h3><Shield size={20} /> Segurança</h3>
             <form onSubmit={savePassword}>
               {errors.passwordSubmit && <div className="error-banner">{errors.passwordSubmit}</div>}
-              <label>Senha Atual</label>
-              <input type="password" name="senhaAtual" value={password.senhaAtual} onChange={handlePasswordChange} />
-
-              <label>Nova Senha</label>
-              <input type="password" name="novaSenha" value={password.novaSenha} onChange={handlePasswordChange} />
-
-              <label>Confirmar Nova Senha</label>
-              <input type="password" name="confirmarSenha" value={password.confirmarSenha} onChange={handlePasswordChange} />
-
-              <button className="btn-primary" type="submit" disabled={saving}><Lock size={16} /> Alterar Senha</button>
+              <div className="form-group">
+                <label>Senha Atual</label>
+                <input type="password" name="senhaAtual" value={password.senhaAtual} onChange={handlePasswordChange} />
+              </div>
+              <div className="form-group">
+                <label>Nova Senha</label>
+                <input type="password" name="novaSenha" value={password.novaSenha} onChange={handlePasswordChange} />
+              </div>
+              <div className="form-group">
+                <label>Confirmar Nova Senha</label>
+                <input type="password" name="confirmarSenha" value={password.confirmarSenha} onChange={handlePasswordChange} />
+              </div>
+              <button className="btn-save" type="submit" disabled={saving}>
+                {saving ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />}
+                Atualizar Senha
+              </button>
             </form>
-          </section>
+          </div>
         );
 
       case 'notifications':
         return (
-          <section className="settings-card">
-            <h3><Bell size={18} /> Notificações</h3>
+          <div className="settings-card" key="notifications-tab">
+            <h3><Bell size={20} /> Notificações</h3>
             <div className="setting-row">
-              <label>Email</label>
-              <input type="checkbox" checked={notifications.email} onChange={() => toggleNotification('email')} />
+              <div className="setting-info">
+                <span className="setting-label">E-mail</span>
+                <span className="setting-description">Receba resumos e alertas por e-mail.</span>
+              </div>
+              <label className="switch">
+                <input type="checkbox" checked={notifications.email} onChange={() => toggleNotification('email')} />
+                <span className="slider"></span>
+              </label>
             </div>
             <div className="setting-row">
-              <label>Notificações Desktop</label>
-              <input type="checkbox" checked={notifications.desktop} onChange={() => toggleNotification('desktop')} />
+              <div className="setting-info">
+                <span className="setting-label">Desktop</span>
+                <span className="setting-description">Notificações no navegador em tempo real.</span>
+              </div>
+              <label className="switch">
+                <input type="checkbox" checked={notifications.desktop} onChange={() => toggleNotification('desktop')} />
+                <span className="slider"></span>
+              </label>
             </div>
-          </section>
+          </div>
         );
 
-      case 'preferences':
+      case 'appearance':
         return (
-          <section className="settings-card">
-            <h3><Moon size={18} /> Preferências</h3>
+          <div className="settings-card" key="appearance-tab">
+            <h3><Moon size={20} /> Preferências</h3>
             <div className="setting-row">
-              <label>Modo Escuro</label>
-              <input type="checkbox" checked={preferences.darkMode} onChange={() => togglePreference('darkMode')} />
+              <div className="setting-info">
+                <span className="setting-label">Modo Escuro</span>
+                <span className="setting-description">Interface com cores mais escuras.</span>
+              </div>
+              <label className="switch">
+                <input type="checkbox" checked={preferences.darkMode} onChange={() => togglePreference('darkMode')} />
+                <span className="slider"></span>
+              </label>
             </div>
-            <div className="setting-row">
-              <label>Idioma</label>
-              <select value={preferences.language} onChange={(e) => { const v = e.target.value; const updated = { ...preferences, language: v }; setPreferences(updated); localStorage.setItem('settings_preferences', JSON.stringify(updated)); }}>
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label><Globe size={16} style={{verticalAlign: 'middle', marginRight: '5px'}} /> Idioma</label>
+              <select 
+                value={preferences.language} 
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setPreferences(p => {
+                    const updated = {...p, language: v};
+                    sessionStorage.setItem('settings_preferences', JSON.stringify(updated));
+                    return updated;
+                  });
+                }}
+              >
                 <option value="pt">Português</option>
                 <option value="en">English</option>
               </select>
             </div>
-          </section>
+          </div>
         );
 
-      case 'integrations':
+      case 'delete':
         return (
-          <section className="settings-card">
-            <h3><CheckCircle size={18} /> Integrações & Avançado</h3>
-            <p>Opções de integrações e configurações avançadas aparecerão aqui.</p>
-          </section>
+          <div className="settings-card" key="delete-tab">
+            <h3 style={{color: '#ef4444'}}><Trash2 size={20} /> Zona Crítica</h3>
+            <p style={{color: '#64748b', marginBottom: '1.5rem'}}>
+              Ao eliminar a sua conta, todos os seus dados serão removidos permanentemente. Esta ação não pode ser desfeita.
+            </p>
+            <button className="btn-save" style={{background: '#ef4444'}}>
+              Eliminar Minha Conta
+            </button>
+          </div>
         );
+
 
       default:
         return null;
     }
-  };
+  }, [activeTab, profile, password, notifications, preferences, saving, errors]);
 
-  if (!user) return <div className="loading">Carregando...</div>;
+  if (!user) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'white' }}>
+        <Loader2 className="animate-spin" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="settings-page">
       <h2>Configurações</h2>
-
-      {success && (
-        <div className="success-banner"><CheckCircle size={16} /> {success}</div>
-      )}
-
+      
       <div className="settings-layout">
         <aside className="settings-menu">
-          <button className={activeTab === 'account' ? 'active' : ''} onClick={() => setActiveTab('account')}><User size={16} /> Conta</button>
-          <button className={activeTab === 'security' ? 'active' : ''} onClick={() => setActiveTab('security')}><Lock size={16} /> Segurança</button>
-          <button className={activeTab === 'notifications' ? 'active' : ''} onClick={() => setActiveTab('notifications')}><Bell size={16} /> Notificações</button>
-          <button className={activeTab === 'preferences' ? 'active' : ''} onClick={() => setActiveTab('preferences')}><Moon size={16} /> Preferências</button>
-          <button className={activeTab === 'integrations' ? 'active' : ''} onClick={() => setActiveTab('integrations')}><CheckCircle size={16} /> Integrações & Avançado</button>
+          <button className={activeTab === 'account' ? 'active' : ''} onClick={() => setActiveTab('account')}>
+            <User size={18} /> Conta
+          </button>
+          <button className={activeTab === 'security' ? 'active' : ''} onClick={() => setActiveTab('security')}>
+            <Shield size={18} /> Segurança
+          </button>
+          <button className={activeTab === 'notifications' ? 'active' : ''} onClick={() => setActiveTab('notifications')}>
+             <Bell size={18} /> Notificações
+          </button>
+          <button className={activeTab === 'appearance' ? 'active' : ''} onClick={() => setActiveTab('appearance')}>
+            <Moon size={18} /> Aparência
+          </button>
+          <button className={activeTab === 'delete' ? 'active' : ''} onClick={() => setActiveTab('delete')}>
+            <Trash2 size={18} /> Avançado
+          </button>
         </aside>
 
-        <main>
+        <main className="settings-content">
+          {success && (
+            <div className="success-banner">
+              <CheckCircle size={20} /> {success}
+            </div>
+          )}
           {renderTabContent()}
         </main>
       </div>

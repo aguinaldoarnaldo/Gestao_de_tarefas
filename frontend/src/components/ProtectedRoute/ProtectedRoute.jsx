@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   }
 
   if (adminOnly && user.tipo !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/boards" replace />;
   }
 
   return children;

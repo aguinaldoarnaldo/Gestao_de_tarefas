@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users as UsersIcon, Plus, Search, Edit2, Trash2, Shield, Mail, Calendar } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import UserModal from '../../components/UserModal/UserModal';
+import PermissionModal from '../../components/PermissionModal/PermissionModal';
 import apiService from '../../services/api';
 import './Users.css';
 
@@ -12,6 +13,7 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
@@ -37,6 +39,11 @@ const Users = () => {
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setIsModalOpen(true);
+  };
+
+  const handleEditPermissions = (user) => {
+    setSelectedUser(user);
+    setIsPermissionModalOpen(true);
   };
 
   const handleDeleteUser = async (userId) => {
@@ -119,60 +126,73 @@ const Users = () => {
       </div>
 
       {loading ? (
-        <div className="loading-state">Carregando utilizadores...</div>
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <span>A carregar utilizadores...</span>
+        </div>
       ) : (
-        <div className="users-table-container">
+        <div className="users-table-card">
           <table className="users-table">
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Tipo</th>
-                <th>Data de Criação</th>
-                <th>Ações</th>
+                <th>Utilizador</th>
+                <th>Contacto</th>
+                <th>Função</th>
+                <th>Registado em</th>
+                <th className="text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map(user => (
                 <tr key={user.id}>
                   <td>
-                    <div className="user-cell">
-                      <div className="user-avatar">
+                    <div className="user-info-cell">
+                      <div className="user-avatar-circle">
                         {user.nome.substring(0, 2).toUpperCase()}
                       </div>
-                      <span className="user-name">{user.nome}</span>
+                      <div className="user-details">
+                        <span className="user-name-text">{user.nome}</span>
+                        <span className="user-id-text">ID: #{user.id.toString().padStart(4, '0')}</span>
+                      </div>
                     </div>
                   </td>
                   <td>
-                    <div className="email-cell">
+                    <div className="contact-info">
                       <Mail size={14} />
-                      {user.email}
+                      <span>{user.email}</span>
                     </div>
                   </td>
                   <td>
-                    <span className={`badge badge-${user.tipo}`}>
+                    <span className={`role-badge role-${user.tipo}`}>
                       {user.tipo === 'admin' ? 'Administrador' : 'Membro'}
                     </span>
                   </td>
                   <td>
-                    <div className="date-cell">
+                    <div className="date-info">
                       <Calendar size={14} />
                       {formatDate(user.data_criacao)}
                     </div>
                   </td>
                   <td>
-                    <div className="actions-cell">
+                    <div className="actions-wrapper">
                       <button
-                        className="btn-icon"
+                        className="btn-action edit"
                         onClick={() => handleEditUser(user)}
                         title="Editar"
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
-                        className="btn-icon btn-delete"
+                        className="btn-action permission"
+                        onClick={() => handleEditPermissions(user)}
+                        title="Permissões"
+                      >
+                        <Shield size={16} />
+                      </button>
+                      <button
+                        className="btn-action delete"
                         onClick={() => handleDeleteUser(user.id)}
-                        title="Excluir"
+                        title="Eliminar"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -184,9 +204,10 @@ const Users = () => {
           </table>
 
           {filteredUsers.length === 0 && (
-            <div className="empty-state">
+            <div className="empty-results">
               <UsersIcon size={48} />
-              <p>Nenhum utilizador encontrado</p>
+              <h3>Sem resultados</h3>
+              <p>Não encontramos nenhum utilizador para esta pesquisa.</p>
             </div>
           )}
         </div>
@@ -197,6 +218,12 @@ const Users = () => {
         onClose={() => setIsModalOpen(false)}
         user={selectedUser}
         onSave={handleSaveUser}
+      />
+
+      <PermissionModal
+        isOpen={isPermissionModalOpen}
+        onClose={() => setIsPermissionModalOpen(false)}
+        user={selectedUser}
       />
     </div>
   );

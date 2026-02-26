@@ -1,7 +1,8 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,6 +16,10 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/api/boards', require('./routes/boardRoutes'));
+app.use('/api/teams', require('./routes/teamRoutes'));
+app.use('/api/invites', require('./routes/teamInviteRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/attachments', require('./routes/attachmentRoutes'));
 app.use('/uploads', express.static('uploads'));
 

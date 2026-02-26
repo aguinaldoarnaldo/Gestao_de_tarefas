@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://192.168.90.240:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 class ApiService {
   constructor() {
@@ -7,7 +7,7 @@ class ApiService {
 
   // Get auth headers
   getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -47,6 +47,10 @@ class ApiService {
     return this.request('/tasks');
   }
 
+  async getTasksByBoard(boardId) {
+    return this.request(`/tasks/board/${boardId}`);
+  }
+
   async getTaskById(id) {
     return this.request(`/tasks/${id}`);
   }
@@ -71,6 +75,17 @@ class ApiService {
     });
   }
 
+  async addTaskMember(taskId, userId) {
+    return this.request(`/tasks/${taskId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ userId })
+    });
+  }
+
+  async getTaskMembers(taskId) {
+    return this.request(`/tasks/${taskId}/members`);
+  }
+
   // Attachment methods
   async getTaskAttachments(taskId) {
     return this.request(`/attachments/task/${taskId}`);
@@ -88,7 +103,7 @@ class ApiService {
 
   async downloadAttachment(attachmentId) {
     const url = `${this.baseURL}/attachments/${attachmentId}/download`;
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     
     try {
       const response = await fetch(url, {
@@ -154,8 +169,9 @@ class ApiService {
   }
 
   // Admin User Management methods
-  async getAllUsers() {
-    return this.request('/users');
+  async getAllUsers(search = '') {
+    const query = search ? `?search=${encodeURIComponent(search)}` : '';
+    return this.request(`/users${query}`);
   }
 
   async createUser(userData) {
@@ -174,6 +190,141 @@ class ApiService {
 
   async deleteUser(userId) {
     return this.request(`/users/${userId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Permission methods
+  async getAvailablePermissions() {
+    return this.request('/users/permissions/all');
+  }
+
+  async getUserPermissions(userId) {
+    return this.request(`/users/${userId}/permissions`);
+  }
+
+  async updateUserPermissions(userId, permissionIds) {
+    return this.request(`/users/${userId}/permissions`, {
+      method: 'POST',
+      body: JSON.stringify({ permissionIds })
+    });
+  }
+
+  // Board methods
+  async getBoards() {
+    return this.request('/boards');
+  }
+
+  async createBoard(boardData) {
+    return this.request('/boards', {
+      method: 'POST',
+      body: JSON.stringify(boardData)
+    });
+  }
+
+  async updateBoard(id, boardData) {
+    return this.request(`/boards/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(boardData)
+    });
+  }
+
+  async deleteBoard(id) {
+    return this.request(`/boards/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getBoardMembers(boardId) {
+    return this.request(`/boards/${boardId}/members`);
+  }
+
+  async addMemberToBoard(boardId, userId) {
+    return this.request(`/boards/${boardId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ userId })
+    });
+  }
+
+  async removeMemberFromBoard(boardId, userId) {
+    return this.request(`/boards/${boardId}/members/${userId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Team methods
+  async getTeams() {
+    return this.request('/teams');
+  }
+
+  async createTeam(teamData) {
+    return this.request('/teams', {
+      method: 'POST',
+      body: JSON.stringify(teamData)
+    });
+  }
+
+  async getTeamMembers(teamId) {
+    return this.request(`/teams/${teamId}/members`);
+  }
+
+  async addMemberToTeam(teamId, userId) {
+    return this.request(`/teams/${teamId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ userId })
+    });
+  }
+
+  async removeMemberFromTeam(teamId, userId) {
+    return this.request(`/teams/${teamId}/members/${userId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async deleteTeam(id) {
+    return this.request(`/teams/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Invite methods
+  async sendTeamInvite(equipa_id, utilizador_id) {
+    return this.request('/invites/send', {
+      method: 'POST',
+      body: JSON.stringify({ equipa_id, utilizador_id })
+    });
+  }
+
+  async getMyInvites() {
+    return this.request('/invites/my');
+  }
+
+  async respondToInvite(inviteId, accept) {
+    return this.request('/invites/respond', {
+      method: 'POST',
+      body: JSON.stringify({ inviteId, accept })
+    });
+  }
+
+  // Notification methods
+  async getMyNotifications() {
+    return this.request('/notifications');
+  }
+
+  async markNotificationAsRead(id) {
+    return this.request(`/notifications/${id}/read`, {
+      method: 'PUT'
+    });
+  }
+
+  async markAllNotificationsAsRead() {
+    return this.request('/notifications/read-all', {
+      method: 'PUT'
+    });
+  }
+
+  async deleteNotification(id) {
+    return this.request(`/notifications/${id}`, {
       method: 'DELETE'
     });
   }
