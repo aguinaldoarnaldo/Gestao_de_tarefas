@@ -4,37 +4,45 @@ const User = {
   create: async (userData) => {
     const { nome, email, senha, tipo } = userData;
     const [result] = await db.query(
-      'INSERT INTO Utilizador (nome, email, senha, tipo) VALUES (?, ?, ?, ?)',
+      'INSERT INTO utilizador (nome, email, senha, tipo) VALUES (?, ?, ?, ?)',
       [nome, email, senha, tipo]
     );
     return result.insertId;
   },
 
   findByEmail: async (email) => {
-    const [rows] = await db.query('SELECT * FROM Utilizador WHERE email = ?', [email]);
+    const [rows] = await db.query('SELECT * FROM utilizador WHERE email = ?', [email]);
     return rows[0];
   },
 
   findById: async (id) => {
-    const [rows] = await db.query('SELECT id, nome, email, tipo FROM Utilizador WHERE id = ?', [id]);
+    const [rows] = await db.query('SELECT id, nome, email, tipo FROM utilizador WHERE id = ?', [id]);
     return rows[0];
   },
 
   findByIdWithPassword: async (id) => {
-    const [rows] = await db.query('SELECT * FROM Utilizador WHERE id = ?', [id]);
+    const [rows] = await db.query('SELECT * FROM utilizador WHERE id = ?', [id]);
     return rows[0];
   },
 
   getAll: async () => {
-    const [rows] = await db.query('SELECT id, nome, email, tipo FROM Utilizador');
+    const [rows] = await db.query('SELECT id, nome, email, tipo FROM utilizador');
+    return rows;
+  },
+
+  searchByNome: async (nome) => {
+    const [rows] = await db.query(
+      'SELECT id, nome, email, tipo FROM utilizador WHERE nome LIKE ?',
+      [`%${nome}%`]
+    );
     return rows;
   },
 
   getPermissions: async (userId) => {
     const [rows] = await db.query(`
       SELECT p.nome 
-      FROM Permissao p
-      JOIN Permissao_Utilizador pu ON p.id = pu.permissao_id
+      FROM permissao p
+      JOIN permissao_utilizador pu ON p.id = pu.permissao_id
       WHERE pu.utilizador_id = ?
     `, [userId]);
     return rows.map(row => row.nome);
@@ -64,13 +72,13 @@ const User = {
     values.push(id);
     
     await db.query(
-      `UPDATE Utilizador SET ${fields.join(', ')} WHERE id = ?`,
+      `UPDATE utilizador SET ${fields.join(', ')} WHERE id = ?`,
       values
     );
   },
 
   delete: async (id) => {
-    await db.query('DELETE FROM Utilizador WHERE id = ?', [id]);
+    await db.query('DELETE FROM utilizador WHERE id = ?', [id]);
   }
 };
 

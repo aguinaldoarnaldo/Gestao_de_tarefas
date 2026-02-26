@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, LogIn, CheckCircle, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, LogIn, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import {
   LoginContainer,
   LoginCard,
@@ -31,6 +32,8 @@ const Login = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginLoader, setShowLoginLoader] = useState(false);
+  const [loaderFadeOut, setLoaderFadeOut] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -54,17 +57,43 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
     setIsLoading(true);
-    
+    // Mostra o loader bonito imediatamente para dar feedback visual instantâneo
+    setShowLoginLoader(true);
+
     try {
+      // 1. Faz login no banco de dados
       await login(formData.email, formData.senha);
-      navigate('/dashboard');
+
+      // 2. Aguarda um tempo mínimo para não ser brusco (premium feel)
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // 3. Fade out suave
+      setLoaderFadeOut(true);
+
+      // 4. Aguarda a animação de fade e navega
+      await new Promise(resolve => setTimeout(resolve, 400));
+      navigate('/boards');
+
     } catch (error) {
-      setErrors({ submit: error.message || 'Credenciais inválidas' });
-    } finally {
+      console.error('Login error:', error);
+      setErrors({ submit: error.message || 'Email ou senha incorretos' });
       setIsLoading(false);
+      setShowLoginLoader(false);
+      setLoaderFadeOut(false);
     }
   };
+
+  // Mostra o loading screen durante o login após autenticação
+  if (showLoginLoader) {
+    return (
+      <LoadingScreen
+        fadeOut={loaderFadeOut}
+        message="A entrar na sua conta..."
+      />
+    );
+  }
 
   return (
     <LoginContainer>
@@ -72,7 +101,7 @@ const Login = () => {
         <LoginHeader>
           <LoginLogo to="/">
             <LoginLogoIcon>
-              <CheckCircle size={24} />
+              <CheckCircle size={22} />
             </LoginLogoIcon>
             TaskFlow
           </LoginLogo>
@@ -90,7 +119,7 @@ const Login = () => {
           <FormGroup>
             <Label>Endereço de E-mail</Label>
             <InputWrapper>
-              <Mail size={18} />
+              <Mail size={17} />
               <input
                 type="email"
                 name="email"
@@ -98,15 +127,16 @@ const Login = () => {
                 value={formData.email}
                 onChange={handleChange}
                 className={errors.email ? 'error' : ''}
+                autoComplete="email"
               />
             </InputWrapper>
             {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
           </FormGroup>
 
           <FormGroup>
-            <Label>Sua Senha</Label>
+            <Label>Senha</Label>
             <InputWrapper>
-              <Lock size={18} />
+              <Lock size={17} />
               <input
                 type="password"
                 name="senha"
@@ -114,6 +144,7 @@ const Login = () => {
                 value={formData.senha}
                 onChange={handleChange}
                 className={errors.senha ? 'error' : ''}
+                autoComplete="current-password"
               />
             </InputWrapper>
             {errors.senha && <ErrorMessage>{errors.senha}</ErrorMessage>}
@@ -121,15 +152,24 @@ const Login = () => {
 
           <FormOptions>
             <RememberMe>
-              <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange} />
+              <input
+                type="checkbox"
+                name="rememberMe"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+              />
               Lembrar de mim
             </RememberMe>
             <ForgotPassword to="#">Esqueceu a senha?</ForgotPassword>
           </FormOptions>
 
           <LoginButton type="submit" disabled={isLoading}>
-            {isLoading ? <Loader2 className="spinner" size={20} /> : <LogIn size={20} />}
-            {isLoading ? 'Entrando...' : 'Entrar na conta'}
+            {isLoading ? (
+              <Loader2 size={20} className="spinner" />
+            ) : (
+              <LogIn size={20} />
+            )}
+            {isLoading ? 'A verificar...' : 'Entrar na conta'}
           </LoginButton>
         </LoginForm>
 

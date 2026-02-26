@@ -6,46 +6,54 @@
 
 ## 🗂️ Estrutura do Projeto
 
-```
+```text
 Gestao_de_tarefas/
-├── backend/          # API REST em Node.js + Express + MySQL
-├── frontend/         # Interface em React + Vite + Styled Components
-├── Docs/
-│   ├── SQl/          # Modelo físico da base de dados (SQL)
-│   └── Diagrams/     # Diagramas do sistema
-└── README.md
+├── backend/            # API REST em Node.js + Express + MySQL
+│   ├── src/            # Código-fonte da API
+│   ├── uploads/        # Armazenamento físico de anexos
+│   └── temp_debug/     # Artefatos de depuração (ignorado pelo Git)
+├── frontend/           # Interface em React + Vite + Styled Components
+│   └── src/            # Código-fonte da interface web
+├── Docs/               # Documentação técnica e manuais
+│   ├── Diagrams/       # Diagramas de fluxo e casos de uso
+│   ├── SQl/            # Scripts de criação da base de dados
+│   └── ...             # Manuais de setup e apresentações
+├── .gitignore          # Configurações globais de exclusão do Git
+├── LICENSE             # Termos de licença do projeto
+└── README.md           # Este documento
 ```
 
 ---
 
 ## 🚀 Tecnologias Utilizadas
 
-| Camada     | Tecnologia                                      |
-|------------|-------------------------------------------------|
-| Frontend   | React 19, Vite, React Router DOM, Styled Components, Lucide React |
-| Backend    | Node.js, Express 5, MySQL2, JWT, Bcrypt, Multer |
-| Base de Dados | MySQL 8                                      |
-| Autenticação | JSON Web Tokens (JWT)                         |
+| Camada | Tecnologia |
+| :--- | :--- |
+| **Frontend** | React 19, Vite, React Router DOM, Styled Components, Lucide React |
+| **Backend** | Node.js, Express, MySQL2, JWT, Bcrypt, Multer |
+| **Base de Dados** | MySQL 8 |
+| **Autenticação** | JSON Web Tokens (JWT) |
 
 ---
 
 ## ⚙️ Como Executar o Projeto
 
 ### Pré-requisitos
-- Node.js >= 18
-- MySQL >= 8 em execução
+- **Node.js** >= 18
+- **MySQL** >= 8 em execução
 
-### 1. Base de Dados
+### 1. Preparação da Base de Dados
+Importe o modelo físico para o seu servidor MySQL:
 ```sql
--- Execute o ficheiro:
+-- Execute o ficheiro localizado em:
 Docs/SQl/modelo_fisico.sql
 ```
 
-### 2. Backend
+### 2. Configuração do Backend
 ```bash
 cd backend
-# Crie o ficheiro .env com as variáveis abaixo
 npm install
+# Crie um ficheiro .env baseado no exemplo abaixo
 npm run dev
 ```
 
@@ -55,11 +63,11 @@ DB_HOST=localhost
 DB_USER=root
 DB_PASS=sua_senha
 DB_NAME=GestaoTarefas
-JWT_SECRET=chave_secreta_jwt
+JWT_SECRET=sua_chave_secreta_aqui
 PORT=5000
 ```
 
-### 3. Frontend
+### 3. Configuração do Frontend
 ```bash
 cd frontend
 npm install
@@ -70,58 +78,19 @@ Aceda em: **http://localhost:5173**
 
 ---
 
-## 🔐 Perfis de Utilizador
+## 🔐 Controlo de Acesso
 
-| Perfil  | Permissões                                                      |
-|---------|-----------------------------------------------------------------|
-| `admin` | Gerir utilizadores, criar/editar/eliminar qualquer tarefa       |
-| `membro`| Criar, editar e eliminar as suas próprias tarefas e anexos      |
-
----
-
-## 📡 Endpoints da API
-
-### Autenticação (`/api/auth`)
-| Método | Rota         | Descrição                        |
-|--------|--------------|----------------------------------|
-| POST   | `/register`  | Registo de novo utilizador       |
-| POST   | `/login`     | Login e obtenção do token JWT    |
-| GET    | `/me`        | Dados do utilizador autenticado  |
-
-### Tarefas (`/api/tasks`) — requer token
-| Método | Rota         | Descrição                        |
-|--------|--------------|----------------------------------|
-| GET    | `/`          | Listar tarefas do utilizador     |
-| POST   | `/`          | Criar nova tarefa                |
-| PUT    | `/:id`       | Atualizar tarefa                 |
-| DELETE | `/:id`       | Eliminar tarefa                  |
-
-### Utilizadores (`/api/users`) — admin
-| Método | Rota         | Descrição                        |
-|--------|--------------|----------------------------------|
-| GET    | `/`          | Listar todos os utilizadores     |
-| PUT    | `/:id`       | Atualizar utilizador             |
-| DELETE | `/:id`       | Eliminar utilizador              |
-
-### Anexos (`/api/attachments`) — requer token
-| Método | Rota                    | Descrição               |
-|--------|-------------------------|-------------------------|
-| POST   | `/task/:taskId`         | Enviar anexo            |
-| GET    | `/task/:taskId`         | Listar anexos da tarefa |
-| GET    | `/:id/download`         | Descarregar anexo       |
-| DELETE | `/:id`                  | Eliminar anexo          |
-
----
-
-## 🗃️ Modelo de Base de Dados
-
-```
-Utilizador ──< Tarefa ──< Anexo
-Utilizador ──< Permissao_Utilizador >── Permissao
-```
+O sistema utiliza RBAC (*Role-Based Access Control*):
+- **Admin**: Gestão total de utilizadores, tarefas e quadros.
+- **Membro**: Criação e gestão das suas próprias tarefas e acesso a quadros onde foi convidado.
 
 ---
 
 ## 📄 Licença
 
-MIT — consulte o ficheiro `LICENSE` para mais detalhes.
+Este projeto está sob a licença **MIT**. Veja o arquivo `LICENSE` para mais detalhes.
+
+---
+
+**Equipa de Desenvolvimento**  
+*TaskFlow — Eficiência em cada tarefa.*
