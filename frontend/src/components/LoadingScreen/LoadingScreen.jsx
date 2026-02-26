@@ -1,25 +1,40 @@
 import React from 'react';
-import { Columns } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import {
   LoadingContainer,
   LoadingContent,
   LogoPulse,
+  BrandName,
   LoadingBarContainer,
   LoadingBar,
+  DotsRow,
+  Dot,
   LoadingText
 } from './LoadingScreen.styles';
 
-const LoadingScreen = ({ fadeOut }) => {
+const LoadingScreen = ({ fadeOut, message }) => {
   return (
     <LoadingContainer className={fadeOut ? 'fade-out' : ''}>
       <LoadingContent>
         <LogoPulse>
-          <Columns size={48} color="#0061ff" />
+          <CheckCircle size={40} color="white" />
         </LogoPulse>
+
+        <BrandName>TaskFlow</BrandName>
+
         <LoadingBarContainer>
           <LoadingBar />
         </LoadingBarContainer>
-        <LoadingText>Preparando seu espaço de trabalho...</LoadingText>
+
+        <DotsRow>
+          <Dot />
+          <Dot />
+          <Dot />
+        </DotsRow>
+
+        <LoadingText>
+          {message || 'Preparando seu espaço de trabalho...'}
+        </LoadingText>
       </LoadingContent>
     </LoadingContainer>
   );

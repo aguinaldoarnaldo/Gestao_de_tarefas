@@ -5,34 +5,58 @@ export const KanbanBoard = styled.div`
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - 120px);
+  background: transparent;
+
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 100px;
+  }
 
   @media (max-width: 768px) {
     padding: 1rem;
     flex-direction: column;
+    gap: 2rem;
+    height: auto;
+    overflow-x: hidden;
   }
 `;
 
 export const KanbanColumn = styled.div`
-  flex: 1;
-  min-width: 320px;
-  max-width: 400px;
-  
+  flex: 0 0 320px;
+  width: 320px;
+  height: fit-content;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+
   @media (max-width: 768px) {
-    min-width: 100%;
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 100%;
   }
+`;
+
+export const ColumnContent = styled.div`
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
 `;
 
 export const ColumnHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  padding: 16px 20px 12px;
 `;
 
 export const ColumnTitle = styled.div`
@@ -41,19 +65,18 @@ export const ColumnTitle = styled.div`
   gap: 0.75rem;
 
   h2 {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #1e293b;
+    color: white;
     margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 `;
 
 export const TaskCount = styled.span`
-  background: #f1f5f9;
-  color: #64748b;
-  padding: 0.2rem 0.6rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 2px 10px;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -62,29 +85,44 @@ export const TaskCount = styled.span`
 export const TaskListContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 8px;
+  max-height: calc(100vh - 280px);
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+  }
+
+  @media (max-width: 768px) {
+    max-height: none;
+    overflow-y: visible;
+  }
 `;
 
 export const AddTaskButton = styled.button`
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
+  gap: 0.75rem;
+  padding: 12px 16px;
+  margin-top: 8px;
   width: 100%;
-  border: 2px dashed #e2e8f0;
+  border: none;
   background: transparent;
-  border-radius: 12px;
-  color: #64748b;
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   transition: all 0.2s;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.9rem;
 
   &:hover {
-    border-color: #0061ff;
-    color: #0061ff;
-    background: #f0f7ff;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
   }
 `;
 
@@ -96,20 +134,80 @@ export const ActionButton = styled.button`
   height: 32px;
   border: none;
   background: transparent;
-  border-radius: 8px;
-  color: #94a3b8;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  transition: all 0.2s;
 
   &:hover {
-    background: #f1f5f9;
-    color: #475569;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
   }
 `;
 
 export const LoadingTasks = styled.div`
   text-align: center;
   padding: 40px 20px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.9rem;
+`;
+
+export const FilterBar = styled.div`
+  display: flex;
+  padding: 1rem 2.5rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+`;
+
+export const FilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  
+  label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+`;
+
+export const FilterSelect = styled.select`
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  
+  option {
+    background: #1e293b;
+    color: white;
+  }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #0061ff;
+    background: rgba(255, 255, 255, 0.1);
+  }
 `;
