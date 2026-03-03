@@ -6,31 +6,45 @@ import {
   Calendar,
   Flag,
   CheckCircle2,
-  User as UserIcon
+  X,
+  Clock,
+  Layout,
+  ChevronRight
 } from 'lucide-react';
 import AttachmentManager from '../AttachmentManager/AttachmentManager';
 import {
-  TaskDetailsOverlay,
-  TaskDetailsModal,
-  DetailsHeader,
-  ModalCloseButton,
-  ModalBody,
-  MainContentArea,
-  SideContentArea,
-  TaskInfo,
-  InfoItem,
-  StatusBadge
-} from '../TaskCard/TaskCard.styles';
+  Overlay,
+  Modal,
+  Header,
+  TitleWrapper,
+  CloseButton,
+  Body,
+  MainContent,
+  Sidebar,
+  Section,
+  Description,
+  Badge,
+  SidebarActions,
+  ActionButton
+} from './TaskDetails.styles';
 
 const TaskDetails = ({ task, isOpen, onClose, onEdit }) => {
   if (!isOpen || !task) return null;
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Pendente': return '#eab308';
-      case 'Em Andamento': return '#3b82f6';
+      case 'Pendente': return '#94a3b8';
+      case 'Em Andamento': return '#2a7de1';
       case 'Concluída': return '#10b981';
       default: return '#94a3b8';
+    }
+  };
+
+  const getPriorityInfo = (priority) => {
+    switch (priority) {
+      case 'Alta': return { color: '#ef4444', label: 'Alta Prioridade' };
+      case 'Média': return { color: '#f59e0b', label: 'Média Prioridade' };
+      default: return { color: '#10b981', label: 'Baixa Prioridade' };
     }
   };
 
@@ -42,124 +56,116 @@ const TaskDetails = ({ task, isOpen, onClose, onEdit }) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
-      month: '2-digit',
+      month: 'long',
       year: 'numeric'
     });
   };
 
+  const priority = getPriorityInfo(task.prioridade);
+
   return (
-    <TaskDetailsOverlay onClick={onClose}>
-      <TaskDetailsModal onClick={(e) => e.stopPropagation()}>
-        <DetailsHeader>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <CheckCircle2 color={getStatusColor(task.status)} size={28} />
-            <h2>{task.titulo}</h2>
+    <Overlay onClick={onClose}>
+      <Modal onClick={(e) => e.stopPropagation()}>
+        <Header>
+          <div style={{ 
+            width: '40px', 
+            height: '40px', 
+            borderRadius: '12px', 
+            background: `${getStatusColor(task.status)}15`, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}>
+            <CheckCircle2 color={getStatusColor(task.status)} size={24} />
           </div>
-          <ModalCloseButton onClick={onClose}>
-            ×
-          </ModalCloseButton>
-        </DetailsHeader>
-        
-        <ModalBody>
-          <MainContentArea>
-            <TaskInfo>
-              <InfoItem>
-                <label><AlignLeft size={16} /> Descrição</label>
-                <p>{task.descricao || 'Nenhuma descrição fornecida.'}</p>
-              </InfoItem>
-
-              <InfoItem>
-                <label><Paperclip size={16} /> Anexos</label>
-                <AttachmentManager taskId={task.id} />
-              </InfoItem>
-            </TaskInfo>
-          </MainContentArea>
-
-          <SideContentArea>
-            <InfoItem>
-              <label><CheckCircle2 size={14} /> Status</label>
-              <StatusBadge color={getStatusColor(task.status)}>
-                {task.status}
-              </StatusBadge>
-            </InfoItem>
-
-            <InfoItem>
-              <label><Calendar size={14} /> Vencimento</label>
-              <span className={isOverdue(task.data_vencimento) ? 'overdue' : ''} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                 {formatDate(task.data_vencimento)}
-                 {isOverdue(task.data_vencimento) && <small style={{ background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem' }}>ATRASADA</small>}
-              </span>
-            </InfoItem>
-
-            <InfoItem>
-              <label><Flag size={14} /> Prioridade</label>
-              <div style={{ 
+          <TitleWrapper>
+            <h2>{task.titulo}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Em</span>
+              <span style={{ 
+                fontSize: '0.75rem', 
+                color: '#2a7de1', 
                 fontWeight: 700, 
-                color: task.prioridade === 'Alta' ? '#ef4444' : task.prioridade === 'Média' ? '#d97706' : '#16a34a',
-                fontSize: '0.9rem'
+                background: '#e8f0fe', 
+                padding: '2px 8px', 
+                borderRadius: '6px' 
               }}>
-                {task.prioridade}
-              </div>
-            </InfoItem>
-
-            {task.membros && task.membros.length > 0 && (
-              <InfoItem>
-                <label><UserIcon size={14} /> Membros</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
-                  {task.membros.map(m => (
-                    <div key={m.id} style={{ 
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '8px 12px', 
-                      background: 'white', 
-                      borderRadius: '12px', 
-                      fontSize: '0.85rem',
-                      fontWeight: '600',
-                      border: '1px solid #f1f5f9'
-                    }}>
-                      <div style={{ 
-                        width: '24px', 
-                        height: '24px', 
-                        borderRadius: '50%', 
-                        background: `hsl(${m.id * 137.5 % 360}, 60%, 65%)`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontSize: '0.7rem'
-                      }}>
-                        {m.nome.substring(0, 1).toUpperCase()}
-                      </div>
-                      {m.nome}
-                    </div>
-                  ))}
-                </div>
-              </InfoItem>
-            )}
-
-            <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-               <button onClick={() => { onEdit(task); onClose(); }} style={{ 
-                 flex: 1, 
-                 padding: '12px', 
-                 borderRadius: '16px', 
-                 border: '1px solid #e2e8f0', 
-                 background: 'white',
-                 fontWeight: '700',
-                 cursor: 'pointer',
-                 display: 'flex',
-                 alignItems: 'center',
-                 justifyContent: 'center',
-                 gap: '8px',
-                 boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-               }}>
-                 <Edit size={16} /> Editar Tarefa
-               </button>
+                Painel Principal
+              </span>
             </div>
-          </SideContentArea>
-        </ModalBody>
-      </TaskDetailsModal>
-    </TaskDetailsOverlay>
+          </TitleWrapper>
+          <CloseButton onClick={onClose}>
+            <X size={20} />
+          </CloseButton>
+        </Header>
+        
+        <Body>
+          <MainContent>
+            <Section>
+              <h3><AlignLeft size={16} /> Descrição</h3>
+              <Description>
+                {task.descricao || 'Adicione uma descrição detalhada para esta tarefa...'}
+              </Description>
+            </Section>
+
+            <Section>
+              <h3><Paperclip size={16} /> Anexos e Arquivos</h3>
+              <AttachmentManager taskId={task.id} />
+            </Section>
+          </MainContent>
+
+          <Sidebar>
+            <Section>
+              <h3><Layout size={14} /> Status Atual</h3>
+              <Badge>
+                <div className="dot" style={{ background: getStatusColor(task.status) }} />
+                <span>{task.status}</span>
+                <ChevronRight size={14} style={{ marginLeft: 'auto', color: '#cbd5e1' }} />
+              </Badge>
+            </Section>
+
+            <Section>
+              <h3><Clock size={14} /> Prazo Final</h3>
+              <Badge style={{ borderColor: isOverdue(task.data_vencimento) ? '#fee2e2' : '#e2e8f0' }}>
+                <Calendar size={16} color={isOverdue(task.data_vencimento) ? '#ef4444' : '#64748b'} />
+                <span style={{ color: isOverdue(task.data_vencimento) ? '#ef4444' : '#1e293b' }}>
+                  {formatDate(task.data_vencimento)}
+                </span>
+              </Badge>
+              {isOverdue(task.data_vencimento) && (
+                <small style={{ 
+                  color: '#ef4444', 
+                  fontWeight: 800, 
+                  fontSize: '0.65rem', 
+                  marginTop: '8px', 
+                  display: 'block',
+                  textAlign: 'right'
+                }}>
+                  ⚠️ ATENÇÃO: TAREFA ATRASADA
+                </small>
+              )}
+            </Section>
+
+            <Section>
+              <h3><Flag size={14} /> Prioridade</h3>
+              <Badge>
+                <div className="dot" style={{ background: priority.color }} />
+                <span>{priority.label}</span>
+              </Badge>
+            </Section>
+
+            <SidebarActions>
+              <ActionButton className="edit" onClick={() => { onEdit(task); onClose(); }}>
+                <Edit size={18} /> Editar Detalhes
+              </ActionButton>
+              <ActionButton className="ghost" onClick={onClose}>
+                Fechar Janela
+              </ActionButton>
+            </SidebarActions>
+          </Sidebar>
+        </Body>
+      </Modal>
+    </Overlay>
   );
 };
 
