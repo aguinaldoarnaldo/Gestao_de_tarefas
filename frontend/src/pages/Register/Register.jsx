@@ -47,7 +47,7 @@ const Register = () => {
     
     try {
       await register(formData.nome, formData.email, formData.senha);
-      navigate('/login');
+      navigate('/boards');
     } catch (error) {
       console.error('Registration Error:', error);
       setErrors({ submit: error.message || 'Erro ao criar conta' });
