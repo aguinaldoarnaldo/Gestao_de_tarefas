@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Plus, 
   Calendar as CalendarIcon,
-  MoreHorizontal,
   RotateCcw,
   CheckCheck,
   Circle,
@@ -33,14 +32,14 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [boards, setBoards] = useState([]);
   const [currentBoard, setCurrentBoard] = useState(null);
+  const [activeMenuTaskId, setActiveMenuTaskId] = useState(null);
   
   // Filters
   const [filterPriority, setFilterPriority] = useState('all');
@@ -51,49 +50,48 @@ const Dashboard = () => {
   const query = new URLSearchParams(location.search);
   const boardId = query.get('boardId');
 
+  const isMounted = React.useRef(true);
   useEffect(() => {
-    fetchBoards();
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
   }, []);
 
   useEffect(() => {
     if (!boardId) {
       navigate('/boards');
+      return;
     }
+
+    const loadInitialData = async () => {
+      if (isMounted.current) setLoading(true);
+      try {
+        const [board, tasksData] = await Promise.all([
+          apiService.getBoardById(boardId),
+          apiService.getTasksByBoard(boardId)
+        ]);
+        
+        if (isMounted.current) {
+          setCurrentBoard(board);
+          setTasks(Array.isArray(tasksData) ? tasksData : []);
+        }
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        if (isMounted.current) setLoading(false);
+      }
+    };
+
+    loadInitialData();
   }, [boardId, navigate]);
 
-  useEffect(() => {
-    if (boardId) {
-      fetchTasks();
-    }
-  }, [boardId]);
-
-  const fetchBoards = async () => {
-    try {
-      const data = await apiService.getBoards();
-      setBoards(data);
-      if (boardId) {
-        const board = data.find(b => b.id === parseInt(boardId));
-        setCurrentBoard(board);
-      }
-    } catch (error) {
-      console.error('Error fetching boards:', error);
-    }
-  };
-
   const fetchTasks = async () => {
-    setLoading(true);
     try {
-      let data;
-      if (boardId) {
-        data = await apiService.getTasksByBoard(boardId);
-      } else {
-        data = await apiService.getTasks();
+      const data = await apiService.getTasksByBoard(boardId);
+      if (isMounted.current) {
+        setTasks(Array.isArray(data) ? data : []);
       }
-      setTasks(data);
     } catch (error) {
-      console.error('Error fetching tasks:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error refreshing tasks:', error);
     }
   };
 
@@ -121,11 +119,9 @@ const Dashboard = () => {
 
   const handleSaveTask = async (taskData) => {
     try {
-      // Use boardId from URL if present (creating in a board), 
-      // otherwise use the one from taskData (keeping existing board or choosing in modal)
       const payload = { 
         ...taskData, 
-        quadro_id: boardId || taskData.quadro_id || null 
+        quadro_id: boardId 
       };
 
       if (selectedTask) {
@@ -155,17 +151,25 @@ const Dashboard = () => {
   };
 
   const columns = [
-    { id: 'Pendente', title: 'Pendente', icon: <Circle size={18} color="rgba(255,255,255,0.7)" /> },
-    { id: 'Em Andamento', title: 'Em Andamento', icon: <RotateCcw size={18} color="rgba(255,255,255,0.7)" /> },
-    { id: 'Concluída', title: 'Concluída', icon: <CheckCheck size={18} color="rgba(255,255,255,0.7)" /> },
+    { id: 'Pendente', title: 'Pendente', icon: <Circle size={14} color="#b0c0d8" /> },
+    { id: 'Em Andamento', title: 'Em Andamento', icon: <RotateCcw size={14} color="#2a7de1" /> },
+    { id: 'Concluída', title: 'Concluída', icon: <CheckCheck size={14} color="#10b981" /> },
   ];
+
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      await apiService.updateTask(taskId, { status: newStatus });
+      showFeedback(`Status alterado para "${newStatus}"!`);
+      await fetchTasks();
+    } catch (error) {
+      showFeedback(error.message || 'Erro ao atualizar status', 'error');
+    }
+  };
 
   const filteredTasks = tasks.filter(task => {
     const matchesPriority = filterPriority === 'all' || task.prioridade === filterPriority;
-    const titulo = task.titulo || '';
-    const descricao = task.descricao || '';
-    const matchesSearch = titulo.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         descricao.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (task.titulo || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (task.descricao || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     let matchesDate = true;
     if (filterDate === 'today') {
@@ -203,46 +207,46 @@ const Dashboard = () => {
       )}
       <FilterBar>
         <FilterGroup>
-            <Filter size={18} color="white" />
-            <label>Priority:</label>
+            <Filter size={16} color="#b0c0d8" />
+            <label>Prioridade:</label>
             <FilterSelect value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
-                <option value="all">All</option>
-                <option value="Alta">High</option>
-                <option value="Média">Medium</option>
-                <option value="Baixa">Low</option>
+                <option value="all">Todas</option>
+                <option value="Alta">Alta</option>
+                <option value="Média">Média</option>
+                <option value="Baixa">Baixa</option>
             </FilterSelect>
         </FilterGroup>
 
         <FilterGroup>
             <CalendarIcon size={18} color="white" />
-            <label>Due Date:</label>
+            <label>Vencimento:</label>
             <FilterSelect value={filterDate} onChange={e => setFilterDate(e.target.value)}>
-                <option value="all">Anytime</option>
-                <option value="today">Today</option>
-                <option value="overdue">Overdue</option>
+                <option value="all">Qualquer data</option>
+                <option value="today">Hoje</option>
+                <option value="overdue">Atrasadas</option>
             </FilterSelect>
         </FilterGroup>
         
         {currentBoard && (
             <div style={{ 
-                fontWeight: 800, 
-                color: 'white', 
-                background: 'rgba(255,255,255,0.2)', 
-                padding: '0.6rem 1.25rem', 
-                borderRadius: '12px', 
-                fontSize: '0.85rem',
-                backdropFilter: 'blur(10px)',
+                fontWeight: 700, 
+                color: '#2a7de1', 
+                background: '#e8f0fe', 
+                padding: '0.35rem 0.9rem', 
+                borderRadius: '8px', 
+                fontSize: '0.8rem',
+                border: '1px solid #b8d4f8',
                 marginLeft: 'auto'
             }}>
-                Project: {currentBoard.nome}
+                📄 {currentBoard.nome}
             </div>
         )}
       </FilterBar>
 
-      <KanbanBoard>
+      <KanbanBoard $hasBg={!!currentBoard?.foto_fundo} $bg={currentBoard?.foto_fundo ? `http://localhost:5000/${currentBoard.foto_fundo}` : null}>
         {columns.map((col, idx) => (
-          <KanbanColumn key={idx}>
-            <ColumnContent>
+          <KanbanColumn key={idx} $hasBg={!!currentBoard?.foto_fundo}>
+            <ColumnContent $hasBg={!!currentBoard?.foto_fundo}>
               <ColumnHeader>
                 <ColumnTitle>
                   {col.icon}
@@ -251,14 +255,11 @@ const Dashboard = () => {
                     {filteredTasks.filter(t => t.status === col.id).length}
                   </TaskCount>
                 </ColumnTitle>
-                <ActionButton style={{ border: 'none', background: 'transparent' }}>
-                  <MoreHorizontal size={18} />
-                </ActionButton>
               </ColumnHeader>
 
               <TaskListContainer>
                 {loading ? (
-                  <LoadingTasks>Loading tasks...</LoadingTasks>
+                  <LoadingTasks>Carregando tarefas...</LoadingTasks>
                 ) : (
                   filteredTasks
                     .filter(task => task.status === col.id)
@@ -269,14 +270,18 @@ const Dashboard = () => {
                         onEdit={handleEditTask}
                         onDelete={handleDeleteTask}
                         onViewDetails={handleViewDetails}
+                        onStatusChange={handleStatusChange}
                         canEdit={true}
+                        hasBoardBg={!!currentBoard?.foto_fundo}
+                        isMenuOpen={activeMenuTaskId === task.id}
+                        onMenuToggle={(isOpen) => setActiveMenuTaskId(isOpen ? task.id : null)}
                       />
                     ))
                 )}
                 
-                <AddTaskButton onClick={handleCreateTask}>
+                <AddTaskButton $hasBg={!!currentBoard?.foto_fundo} onClick={handleCreateTask}>
                   <Plus size={18} />
-                  Add task
+                  Nova Tarefa
                 </AddTaskButton>
               </TaskListContainer>
             </ColumnContent>

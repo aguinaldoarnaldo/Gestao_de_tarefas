@@ -7,13 +7,10 @@ import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import Home from './pages/Home/Home';
 import Dashboard from './pages/Dashboard/Dashboard';
-import Users from './pages/Users/Users';
 import Profile from './pages/Profile/Profile';
+import Boards from './pages/Boards/Boards';
 import Calendar from './pages/Calendar/Calendar';
 import Settings from './pages/Settings/Settings';
-import Boards from './pages/Boards/Boards';
-import Teams from './pages/Teams/Teams';
-import Analytics from './pages/Analytics/Analytics';
 import LoadingScreen from './components/LoadingScreen/LoadingScreen';
 import MainLayout from './components/MainLayout/MainLayout';
 
@@ -22,12 +19,13 @@ function App() {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
+    // Reduce initial loading time for better UX
     const timer = setTimeout(() => {
       setFadeOut(true);
       setTimeout(() => {
         setIsLoading(false);
-      }, 400); // Fade duration
-    }, 800); // Fast initial load
+      }, 300); // Snappier fade
+    }, 400); // Shorter initial load
 
     return () => clearTimeout(timer);
   }, []);
@@ -60,98 +58,19 @@ function App() {
             />
             
             {/* Rotas Protegidas (Requer Autenticação) */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <MainLayout title="Gestão de Tarefas">
-                    <Dashboard />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            
+            <Route element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/boards" element={<Boards />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+
             <Route path="/home" element={<Navigate to="/boards" replace />} />
-            
-            <Route
-              path="/boards"
-              element={
-                <ProtectedRoute>
-                  <MainLayout title="Os meus Quadros">
-                    <Boards />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <MainLayout title="O meu Perfil">
-                    <Profile />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Rotas Admin Only */}
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <MainLayout title="Gestão de Utilizadores">
-                    <Users />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* Outras Rotas Internas */}
-            <Route
-              path="/calendar"
-              element={
-                <ProtectedRoute>
-                  <MainLayout title="Calendário">
-                    <Calendar />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/teams"
-              element={
-                <ProtectedRoute>
-                  <MainLayout title="Gestão de Equipas">
-                    <Teams />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/analytics"
-              element={
-                <ProtectedRoute>
-                  <MainLayout title="Análises de Performance">
-                    <Analytics />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <MainLayout title="Configurações">
-                    <Settings />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, AlertCircle, Users, UserPlus, Flag, Search, Loader2 } from 'lucide-react';
+import { X, Calendar, AlertCircle, Flag } from 'lucide-react';
 import AttachmentManager from '../AttachmentManager/AttachmentManager';
 import apiService from '../../services/api';
 import {
@@ -30,13 +30,8 @@ const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, d
     data_vencimento: '',
     quadro_id: defaultBoardId || ''
   });
-  const [selectedMembers, setSelectedMembers] = useState([]);
-  const [availableUsers, setAvailableUsers] = useState([]);
-  const [showUserList, setShowUserList] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -48,45 +43,8 @@ const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, d
         data_vencimento: task?.data_vencimento ? task.data_vencimento.slice(0, 10) : (defaultDate ? defaultDate.toISOString().slice(0, 10) : ''),
         quadro_id: task?.quadro_id || defaultBoardId || ''
       });
-      fetchUsers();
-      if (task) {
-        fetchTaskMembers();
-      }
     }
   }, [isOpen, task, defaultBoardId]);
-
-  const handleSearchUsers = async (query) => {
-    setSearchQuery(query);
-    if (query.trim().length === 0) {
-      setAvailableUsers([]);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const users = await apiService.getAllUsers(query);
-      setAvailableUsers(users);
-    } catch (error) {
-      console.error('Error searching users:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const fetchUsers = async () => {
-    // We don't fetch all users anymore, we fetch on search
-    setAvailableUsers([]);
-  };
-
-
-  const fetchTaskMembers = async () => {
-    try {
-      const members = await apiService.getTaskMembers(task.id);
-      setSelectedMembers(members);
-    } catch (error) {
-      console.error('Error fetching members:', error);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -96,17 +54,6 @@ const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, d
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-  };
-
-  const toggleMember = (user) => {
-    setSelectedMembers(prev => {
-      const exists = prev.find(m => m.id === user.id);
-      if (exists) {
-        return prev.filter(m => m.id !== user.id);
-      } else {
-        return [...prev, user];
-      }
-    });
   };
 
   const validate = () => {
@@ -124,11 +71,7 @@ const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, d
 
     setIsSubmitting(true);
     try {
-      const taskData = {
-        ...formData,
-        membros: selectedMembers.map(m => m.id)
-      };
-      await onSave(taskData);
+      await onSave(formData);
       onClose();
     } catch (error) {
       setErrors({ submit: error.message });
@@ -217,67 +160,6 @@ const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, d
             </FormGroup>
 
           </FormRow>
-
-          <MemberSelectorContainer>
-            <label style={{ fontWeight: 600, fontSize: '0.875rem', color: '#374151' }}>Equipe / Membros</label>
-            <MemberList>
-              {selectedMembers.map(m => (
-                <MemberBadge key={m.id}>
-                  {m.nome}
-                  <X size={12} style={{ cursor: 'pointer' }} onClick={() => toggleMember(m)} />
-                </MemberBadge>
-              ))}
-              <Button type="button" $variant="secondary" style={{ padding: '4px 10px', fontSize: '0.75rem' }} onClick={() => setShowUserList(!showUserList)}>
-                <UserPlus size={14} /> Adicionar
-              </Button>
-            </MemberList>
-            
-            {showUserList && (
-              <div style={{ marginTop: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '0.75rem', background: '#f8fafc' }}>
-                <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-                  <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                  <input 
-                    type="text" 
-                    placeholder="Pesquisar utilizador..." 
-                    value={searchQuery}
-                    onChange={(e) => handleSearchUsers(e.target.value)}
-                    style={{ 
-                      width: '100%', 
-                      padding: '0.5rem 0.75rem 0.5rem 2.5rem', 
-                      borderRadius: '8px', 
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.875rem'
-                    }}
-                    autoFocus
-                  />
-                  {isSearching && <Loader2 size={14} className="spinner" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#3b82f6' }} />}
-                </div>
-
-                <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                  {availableUsers.length > 0 ? (
-                    availableUsers.map(u => (
-                      <UserItem key={u.id} onClick={() => {
-                        toggleMember(u);
-                        setSearchQuery('');
-                        setAvailableUsers([]);
-                      }}>
-                        <input type="checkbox" checked={selectedMembers.some(m => m.id === u.id)} readOnly style={{ width: 'auto' }} />
-                        <span style={{ fontSize: '0.875rem' }}>{u.nome} ({u.email})</span>
-                      </UserItem>
-                    ))
-                  ) : (
-                    <div style={{ padding: '1rem', textAlign: 'center', fontSize: '0.875rem', color: '#64748b' }}>
-                      {searchQuery.length > 0 ? (
-                        !isSearching && <span>Nenhum utilizador encontrado.</span>
-                      ) : (
-                        <span>Digite o nome para pesquisar.</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </MemberSelectorContainer>
 
           {task && (
             <FormGroup style={{ marginTop: '1.5rem' }}>

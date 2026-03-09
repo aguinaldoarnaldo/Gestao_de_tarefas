@@ -16,8 +16,7 @@ exports.getProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
-    const permissions = await User.getPermissions(req.user.id);
-    res.json({ ...user, permissions });
+    res.json(user);
   } catch (error) {
     handleServerError(res, error, 'Erro ao buscar perfil.');
   }
@@ -43,9 +42,9 @@ exports.getAllUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, email, senha, tipo } = req.body;
+    const { nome, email, senha } = req.body;
     
-    const updateData = { nome, email, tipo };
+    const updateData = { nome, email };
     
     if (senha) {
       const salt = await bcrypt.genSalt(10);
@@ -98,97 +97,5 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     handleServerError(res, error, 'Erro ao atualizar perfil.');
-  }
-};
-
-// PUT /api/users/change-password
-exports.changePassword = async (req, res) => {
-  try {
-    const { senhaAtual, novaSenha } = req.body;
-    const userId = req.user.id;
-    
-    // Busca usuário com a senha hashada (findById padrão não retorna senha)
-    const user = await User.findByIdWithPassword(userId);
-    
-    if (!user) {
-        return res.status(404).json({ message: 'Usuário não encontrado.' });
-    }
-
-    const isMatch = await bcrypt.compare(senhaAtual, user.senha);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Senha atual incorreta.' });
-    }
-    
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(novaSenha, salt);
-    
-    await User.update(userId, { senha: hashedPassword });
-    res.json({ message: 'Senha alterada com sucesso!' });
-  } catch (error) {
-    handleServerError(res, error, 'Erro ao alterar senha.');
-  }
-};
-
-// GET /api/users/stats
-exports.getUserStats = async (req, res) => {
-  try {
-    const tasks = await Task.getByUserId(req.user.id);
-    
-    const stats = {
-      total: tasks.length,
-      concluidas: tasks.filter(t => t.status === 'Concluída').length,
-      emAndamento: tasks.filter(t => t.status === 'Em Andamento').length,
-      pendentes: tasks.filter(t => t.status === 'Pendente').length
-    };
-    
-    res.json(stats);
-  } catch (error) {
-    handleServerError(res, error, 'Erro ao buscar estatísticas.');
-  }
-};
-
-// Permissions
-const Permission = require('../models/Permission');
-
-exports.getAllPermissions = async (req, res) => {
-  try {
-    const permissions = await Permission.getAll();
-    res.json(permissions);
-  } catch (error) {
-    handleServerError(res, error, 'Erro ao buscar permissões.');
-  }
-};
-
-exports.getUserPermissions = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const permissions = await Permission.getByUserId(id);
-    res.json(permissions);
-  } catch (error) {
-    handleServerError(res, error, 'Erro ao buscar permissões do utilizador.');
-  }
-};
-
-exports.updateUserPermissions = async (req, res) => {
-  try {
-    const { id } = req.params; // User ID
-    const { permissionIds } = req.body; // Array of IDs
-
-    if (!Array.isArray(permissionIds)) {
-      return res.status(400).json({ message: 'Lista de permissões inválida.' });
-    }
-
-    // Simple approach: remove all and re-add
-    const currentPermissions = await Permission.getByUserId(id);
-    for (const p of currentPermissions) {
-      await Permission.removeFromUser(id, p.id);
-    }
-    for (const pId of permissionIds) {
-      await Permission.assignToUser(id, pId);
-    }
-
-    res.json({ message: 'Permissões atualizadas com sucesso!' });
-  } catch (error) {
-    handleServerError(res, error, 'Erro ao atualizar permissões.');
   }
 };

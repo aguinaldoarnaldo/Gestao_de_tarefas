@@ -53,11 +53,11 @@ a {
 
 /* Selection */
 ::selection {
-  background: #667eea;
+  background: #4361ee;
   color: white;
 }
 
 ::-moz-selection {
-  background: #667eea;
+  background: #4361ee;
   color: white;
 }

@@ -16,11 +16,6 @@ const Task = {
       FROM tarefa t 
       JOIN utilizador u ON t.utilizador_id = u.id
     `);
-    
-    for (let task of rows) {
-      task.membros = await Task.getMembers(task.id);
-    }
-    
     return rows;
   },
 
@@ -31,21 +26,17 @@ const Task = {
 
   getByUserId: async (userId) => {
     const [rows] = await db.query('SELECT * FROM tarefa WHERE utilizador_id = ?', [userId]);
-    
-    for (let task of rows) {
-      task.membros = await Task.getMembers(task.id);
-    }
-    
     return rows;
   },
 
   getByBoardId: async (boardId) => {
-    const [rows] = await db.query('SELECT * FROM tarefa WHERE quadro_id = ?', [boardId]);
-    
-    for (let task of rows) {
-      task.membros = await Task.getMembers(task.id);
-    }
-    
+    const [rows] = await db.query(`
+      SELECT t.*, COUNT(a.id) as total_anexos
+      FROM tarefa t
+      LEFT JOIN anexo a ON t.id = a.tarefa_id
+      WHERE t.quadro_id = ?
+      GROUP BY t.id
+    `, [boardId]);
     return rows;
   },
 
@@ -59,38 +50,6 @@ const Task = {
 
   delete: async (id) => {
     await db.query('DELETE FROM tarefa WHERE id = ?', [id]);
-  },
-
-  addMember: async (taskId, userId) => {
-    await db.query(
-      'INSERT IGNORE INTO tarefa_membro (tarefa_id, utilizador_id) VALUES (?, ?)',
-      [taskId, userId]
-    );
-  },
-
-  removeMember: async (taskId, userId) => {
-    await db.query(
-      'DELETE FROM tarefa_membro WHERE tarefa_id = ? AND utilizador_id = ?',
-      [taskId, userId]
-    );
-  },
-
-  getMembers: async (taskId) => {
-    const [rows] = await db.query(`
-      SELECT u.id, u.nome, u.email, u.tipo 
-      FROM utilizador u
-      JOIN tarefa_membro tm ON u.id = tm.utilizador_id
-      WHERE tm.tarefa_id = ?
-    `, [taskId]);
-    return rows;
-  },
-
-  removeMemberFromBoardTasks: async (boardId, userId) => {
-    await db.query(`
-      DELETE tm FROM tarefa_membro tm
-      JOIN tarefa t ON tm.tarefa_id = t.id
-      WHERE t.quadro_id = ? AND tm.utilizador_id = ?
-    `, [boardId, userId]);
   }
 };
 

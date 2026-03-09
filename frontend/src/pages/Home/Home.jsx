@@ -86,8 +86,9 @@ const Home = () => {
         {/* Mockup Preview */}
         <HeroMockup>
           <img 
-            src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop" 
+            src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop&q=60" 
             alt="Dashboard Preview" 
+            loading="lazy"
           />
         </HeroMockup>
       </Hero>

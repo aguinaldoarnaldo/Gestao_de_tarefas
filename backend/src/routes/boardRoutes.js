@@ -2,17 +2,15 @@ const express = require('express');
 const router = express.Router();
 const boardController = require('../controllers/boardController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const upload = require('../config/multer');
 
 router.use(authMiddleware);
 
-router.post('/', boardController.createBoard);
+// Basic board operations
+router.post('/', upload.single('foto_fundo'), boardController.createBoard);
 router.get('/', boardController.getAllBoards);
-router.put('/:id', boardController.updateBoard);
+router.get('/:id', boardController.getBoardById);
+router.put('/:id', upload.single('foto_fundo'), boardController.updateBoard);
 router.delete('/:id', boardController.deleteBoard);
-
-// Board members management
-router.get('/:id/members', boardController.getBoardMembers);
-router.post('/:id/members', boardController.addMemberToBoard);
-router.delete('/:id/members/:userId', boardController.removeMemberFromBoard);
 
 module.exports = router;

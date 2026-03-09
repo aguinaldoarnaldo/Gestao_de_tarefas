@@ -1,23 +1,24 @@
 import styled from 'styled-components';
 
 export const TaskCardContainer = styled.div`
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 20px;
-  padding: 16px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  background: ${props => props.$hasBoardBg ? 'rgba(255, 255, 255, 0.82)' : '#ffffff'};
+  backdrop-filter: ${props => props.$hasBoardBg ? 'blur(4px)' : 'none'};
+  border-radius: 12px;
+  padding: 12px;
+  border: ${props => props.$hasBoardBg ? '1px solid rgba(226, 232, 240, 0.5)' : '1px solid #e2e8f0'};
+  box-shadow: ${props => props.$hasBoardBg ? '0 1px 3px rgba(0,0,0,0.02)' : '0 2px 4px rgba(0,0,0,0.05)'};
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   width: 100%;
+  box-sizing: border-box;
+  z-index: ${props => props.$isMenuOpen ? 1000 : 1};
 
   &:hover {
-    background: rgba(255, 255, 255, 0.6);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transform: translateY(-2px);
   }
 `;
 
@@ -25,11 +26,11 @@ export const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 `;
 
 export const CardTitle = styled.h3`
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: #0f172a;
   margin: 0;
@@ -37,74 +38,14 @@ export const CardTitle = styled.h3`
   flex: 1;
 `;
 
-export const CardMenu = styled.div`
-  position: relative;
-`;
-
-export const MenuButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 8px;
-  color: #475569;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-`;
-
-export const DropdownMenu = styled.div`
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  min-width: 180px;
-  margin-top: 8px;
-  overflow: hidden;
-  border: 1px solid #f1f5f9;
-`;
-
-export const MenuItem = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #1e293b;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #f8fafc;
-    color: #0061ff;
-  }
-
-  &.delete {
-    color: #ef4444;
-    &:hover { background: #fff1f2; }
-  }
-`;
-
 export const CardDesc = styled.p`
-  color: #475569;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.75rem;
   line-height: 1.5;
-  margin: 8px 0 16px 0;
+  margin: 4px 0 10px 0;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 `;
@@ -113,51 +54,54 @@ export const CardFooter = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 12px;
-`;
-
-export const CardAttachments = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #64748b;
-  font-size: 0.8rem;
-  font-weight: 600;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
 `;
 
 export const CardDate = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: 0.8rem;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
   font-weight: 700;
-  color: #475569;
-  background: rgba(255, 255, 255, 0.3);
+  color: #64748b;
+  background: #f1f5f9;
 
   &.overdue {
-    background: #fee2e2;
+    background: #fef2f2;
     color: #ef4444;
   }
 `;
 
-export const CardStatusIndicator = styled.div`
-  display: none;
+export const CardAttachments = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 600;
 `;
 
-// TASK DETAILS MODAL IMPROVEMENTS
+export const StatusBadge = styled.span`
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: ${props => props.color || '#f1f5f9'};
+  color: #fff;
+`;
+
+// ─── Modal Details Redesign ──────────────────────────────────
 export const TaskDetailsOverlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -166,164 +110,207 @@ export const TaskDetailsOverlay = styled.div`
 `;
 
 export const TaskDetailsModal = styled.div`
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border-radius: 40px;
+  background: #ffffff;
+  border-radius: 20px;
   width: 100%;
-  max-width: 850px;
-  height: auto;
-  max-height: 95vh;
+  max-width: 800px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 40px 120px -20px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-
-  @keyframes modalEnter {
-    from { opacity: 0; transform: scale(0.9) translateY(20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e2e8f0;
 
   @media (max-width: 768px) {
-    border-radius: 24px;
-    max-height: 98vh;
+    max-height: 95vh;
   }
 `;
 
 export const DetailsHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 32px 48px;
-  background: rgba(255, 255, 255, 0.3);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  align-items: flex-start;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
 
   h2 {
     margin: 0;
     color: #0f172a;
-    font-size: 1.75rem;
-    font-weight: 850;
+    font-size: 1.25rem;
+    font-weight: 800;
     letter-spacing: -0.02em;
-  }
-
-  @media (max-width: 768px) {
-    padding: 24px;
-    h2 { font-size: 1.4rem; }
   }
 `;
 
 export const ModalCloseButton = styled.button`
-  background: white;
+  background: #f1f5f9;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #64748b;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 
   &:hover {
-    background: #ef4444;
-    color: white;
-    transform: scale(1.1) rotate(90deg);
+    background: #fee2e2;
+    color: #ef4444;
   }
 `;
 
 export const ModalBody = styled.div`
-  padding: 40px 48px;
+  padding: 2rem;
   overflow-y: auto;
   display: grid;
   grid-template-columns: 1.8fr 1fr;
-  gap: 40px;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #dfe1e6;
-    border-radius: 10px;
-  }
+  gap: 2rem;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    padding: 24px;
-    gap: 30px;
+    padding: 1.5rem;
   }
 `;
 
 export const MainContentArea = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 32px;
-`;
-
-export const SideContentArea = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  background: rgba(0, 0, 0, 0.02);
-  padding: 24px;
-  border-radius: 24px;
-  height: fit-content;
+  gap: 1.5rem;
 `;
 
 export const TaskInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
-`;
+  gap: 1.5rem;
 
-export const InfoItem = styled.div`
   label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.75rem;
+    display: block;
+    font-size: 0.7rem;
     font-weight: 800;
-    color: #64748b;
+    color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 12px;
-  }
-
-  span {
-    color: #1e293b;
-    font-size: 1rem;
-    font-weight: 600;
-
-    &.overdue {
-      color: #ef4444;
-    }
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
   }
 
   p {
     margin: 0;
     color: #334155;
-    font-size: 1.05rem;
-    line-height: 1.8;
-    background: white;
-    padding: 24px;
-    border-radius: 20px;
-    border: 1px solid #f1f5f9;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
   }
 `;
 
-export const StatusBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 16px;
+export const SideContentArea = styled.aside`
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: #f8fafc;
+  padding: 1.25rem;
   border-radius: 12px;
-  color: white;
-  font-size: 0.85rem;
-  font-weight: 750;
-  background-color: ${props => props.color || '#94a3b8'};
-  box-shadow: 0 4px 12px ${props => props.color + '40' || 'rgba(0,0,0,0.1)'};
+  border: 1px solid #e2e8f0;
+  height: fit-content;
+`;
+
+export const InfoItem = styled.div`
+  span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+`;
+
+export const CardMenu = styled.div`
+  position: relative;
+  z-index: 10;
+`;
+
+export const MenuButton = styled.button`
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #0d2137;
+  }
+`;
+
+export const DropdownMenu = styled.div`
+  position: fixed;
+  top: ${props => props.$top || 0}px;
+  left: ${props => props.$left || 0}px;
+  width: 180px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1);
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem;
+  z-index: 10000;
+  animation: fadeIn 0.15s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+export const MenuHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 4px;
+
+  button {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    &:hover { color: #0d2137; }
+  }
+`;
+
+export const MenuItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  svg { opacity: 0.7; }
+
+  &:hover {
+    background: #f8fafc;
+    color: #0d2137;
+    svg { opacity: 1; }
+  }
+
+  &.delete {
+    color: #ef4444;
+    &:hover { background: #fef2f2; }
+  }
 `;

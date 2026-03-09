@@ -62,7 +62,7 @@ Estrutura otimizada com eliminação em cascata para integridade total:
 - **Tarefa**: Contém status (Pendente, Em Andamento, Concluído) e prazos.
 - **Anexo**: Ficheiros vinculados diretamente à regra de negócio da tarefa.
 
----
+--- v 
 
 ## 🌟 6. Diferenciais Estratégicos
 1. **Zero CSS Externo**: 100% de estilização via código (Styled-Components).

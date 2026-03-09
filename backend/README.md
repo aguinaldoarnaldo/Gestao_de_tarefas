@@ -1,192 +1,185 @@
-# 🖥️ Backend — TaskFlow API
+# ⚙️ TaskFlow — Backend
 
-API REST construída com **Node.js**, **Express** e **MySQL**, responsável por toda a lógica de negócio, autenticação e persistência de dados do sistema TaskFlow.
+API REST da aplicação TaskFlow, construída com **Node.js + Express + MySQL**, com autenticação JWT e suporte a tempo real via **Socket.io**.
 
 ---
 
-## 📁 Estrutura de Pastas
+## 🗂️ Estrutura de Pastas
 
-```
+```text
 backend/
 ├── src/
-│   ├── index.js              # Ponto de entrada da aplicação
 │   ├── config/
-│   │   └── database.js       # Configuração do pool de conexões MySQL
+│   │   └── db.js               # Pool de conexão ao MySQL
 │   ├── controllers/
-│   │   ├── authController.js       # Registo e login
-│   │   ├── userController.js       # Gestão de perfil e utilizadores
-│   │   ├── taskController.js       # CRUD de tarefas
-│   │   ├── attachmentController.js # Upload/download/delete de anexos
-│   │   └── permissionController.js # Gestão de permissões
+│   │   ├── authController.js   # Registo e login de utilizadores
+│   │   ├── userController.js   # Gestão do perfil do utilizador
+│   │   ├── boardController.js  # CRUD de quadros
+│   │   ├── taskController.js   # CRUD de tarefas com filtros
+│   │   └── attachmentController.js  # Upload e remoção de anexos
 │   ├── middlewares/
-│   │   ├── authMiddleware.js  # Verificação do token JWT
-│   │   └── roleMiddleware.js  # Verificação de perfil (admin)
+│   │   ├── auth.js             # Verificação do token JWT
+│   │   └── upload.js           # Configuração do Multer (upload de ficheiros)
 │   ├── models/
-│   │   ├── User.js        # Queries SQL para Utilizador
-│   │   ├── Task.js        # Queries SQL para Tarefa
-│   │   ├── Attachment.js  # Queries SQL para Anexo
-│   │   └── Permission.js  # Queries SQL para Permissão
-│   └── routes/
-│       ├── authRoutes.js        # Rotas de autenticação
-│       ├── userRoutes.js        # Rotas de utilizadores
-│       ├── taskRoutes.js        # Rotas de tarefas
-│       └── attachment.routes.js # Rotas de anexos
-├── .env                   # Variáveis de ambiente (não versionado)
+│   │   ├── User.js             # Model de utilizador
+│   │   ├── Board.js            # Model de quadro
+│   │   ├── Task.js             # Model de tarefa
+│   │   └── Attachment.js       # Model de anexo
+│   ├── routes/
+│   │   ├── authRoutes.js       # POST /register, POST /login
+│   │   ├── userRoutes.js       # GET/PUT /users/profile
+│   │   ├── boardRoutes.js      # CRUD /boards
+│   │   ├── taskRoutes.js       # CRUD /tasks
+│   │   └── attachmentRoutes.js # POST/DELETE /attachments
+│   └── index.js                # Entrada do servidor + Socket.io
+├── uploads/                    # Ficheiros enviados pelos utilizadores
+├── .env                        # Variáveis de ambiente (não versionado)
 └── package.json
 ```
 
 ---
 
-## ⚙️ Instalação e Execução
+## 📡 Endpoints da API
+
+### Autenticação — `/api/auth`
+
+| Método | Rota | Descrição | Auth |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Criar nova conta | ❌ |
+| `POST` | `/api/auth/login` | Iniciar sessão + obter token | ❌ |
+
+### Utilizadores — `/api/users`
+
+| Método | Rota | Descrição | Auth |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/users/profile` | Obter dados do perfil | ✅ |
+| `PUT` | `/api/users/profile` | Atualizar nome e email | ✅ |
+
+### Quadros — `/api/boards`
+
+| Método | Rota | Descrição | Auth |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/boards` | Listar quadros do utilizador | ✅ |
+| `POST` | `/api/boards` | Criar novo quadro | ✅ |
+| `PUT` | `/api/boards/:id` | Atualizar quadro | ✅ |
+| `DELETE` | `/api/boards/:id` | Eliminar quadro | ✅ |
+
+### Tarefas — `/api/tasks`
+
+| Método | Rota | Descrição | Auth |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/tasks` | Listar tarefas (filtros: `boardId`, `status`, `prioridade`) | ✅ |
+| `GET` | `/api/tasks/:id` | Obter uma tarefa com anexos | ✅ |
+| `POST` | `/api/tasks` | Criar nova tarefa | ✅ |
+| `PUT` | `/api/tasks/:id` | Atualizar tarefa | ✅ |
+| `DELETE` | `/api/tasks/:id` | Eliminar tarefa | ✅ |
+
+### Anexos — `/api/attachments`
+
+| Método | Rota | Descrição | Auth |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/attachments` | Fazer upload de anexo (multipart/form-data) | ✅ |
+| `DELETE` | `/api/attachments/:id` | Remover anexo | ✅ |
+| `GET` | `/uploads/:ficheiro` | Aceder ao ficheiro guardado | ❌ |
+
+---
+
+## 🗄️ Modelo de Dados
+
+```
+Utilizador (1) ──── (N) Quadro
+Quadro     (1) ──── (N) Tarefa
+Tarefa     (1) ──── (N) Anexo
+```
+
+### Tabelas principais
+
+| Tabela | Campos relevantes |
+| :--- | :--- |
+| `utilizadores` | `id`, `nome`, `email`, `senha`, `criado_em` |
+| `quadros` | `id`, `nome`, `descricao`, `utilizador_id`, `criado_em` |
+| `tarefas` | `id`, `titulo`, `descricao`, `status`, `prioridade`, `data_vencimento`, `quadro_id`, `utilizador_id` |
+| `anexos` | `id`, `nome_ficheiro`, `caminho`, `tamanho`, `tarefa_id`, `criado_em` |
+
+---
+
+## 🛠️ Configuração e Execução
+
+### 1. Instalar dependências
 
 ```bash
 npm install
-npm run dev    # Desenvolvimento com nodemon
-npm start      # Produção
 ```
 
-### Variáveis de Ambiente (`.env`)
+### 2. Configurar variáveis de ambiente
+
+Crie um ficheiro `.env` na raiz do `backend/`:
+
 ```env
 DB_HOST=localhost
 DB_USER=root
 DB_PASS=sua_senha
 DB_NAME=GestaoTarefas
-JWT_SECRET=chave_secreta_forte
+JWT_SECRET=chave_secreta_longa_e_segura
 PORT=5000
+```
+
+### 3. Inicializar a base de dados
+
+```sql
+-- Execute o ficheiro:
+Docs/SQl/modelo_fisico.sql
+```
+
+### 4. Executar o servidor
+
+```bash
+# Modo desenvolvimento (com nodemon)
+npm run dev
+
+# Modo produção
+npm start
+```
+
+O servidor ficará disponível em: **http://localhost:5000**
+
+---
+
+## 🔐 Segurança
+
+- Senhas guardadas com **bcrypt** (hash + salt)
+- Todos os endpoints protegidos verificam o header `Authorization: Bearer <token>`
+- Tokens JWT com expiração configurável via `JWT_SECRET`
+- Upload de ficheiros limitado em tamanho e tipo via **Multer**
+- CORS configurado para aceitar pedidos do frontend
+
+---
+
+## 🔌 Socket.io
+
+O servidor suporta comunicação em **tempo real** para atualizações de quadros:
+
+```js
+// O cliente conecta-se e entra numa sala de quadro
+socket.emit('join_board', boardId);
+
+// O servidor emite eventos quando tarefas são criadas/atualizadas/eliminadas
+// Evento: 'task_updated', 'task_created', 'task_deleted'
 ```
 
 ---
 
-## 📦 Dependências
+## 📦 Dependências Principais
 
-| Pacote        | Versão   | Finalidade                              |
-|---------------|----------|-----------------------------------------|
-| express       | ^5.2.1   | Framework HTTP                          |
-| mysql2        | ^3.16.3  | Driver MySQL com suporte a Promises     |
-| jsonwebtoken  | ^9.0.3   | Geração e verificação de tokens JWT     |
-| bcryptjs      | ^3.0.3   | Hash seguro de palavras-passe           |
-| multer        | ^2.0.2   | Upload de ficheiros multipart/form-data |
-| cors          | ^2.8.6   | Controlo de origens cruzadas (CORS)     |
-| morgan        | ^1.10.1  | Logger de requisições HTTP              |
-| dotenv        | ^17.2.4  | Carregamento de variáveis de ambiente   |
-| nodemon       | ^3.1.11  | Reinício automático em desenvolvimento  |
-
----
-
-## 🔌 Rotas da API
-
-### `/api/auth` — Autenticação
-
-| Método | Rota        | Middleware    | Descrição                         |
-|--------|-------------|---------------|-----------------------------------|
-| POST   | `/register` | —             | Cria novo utilizador              |
-| POST   | `/login`    | —             | Autentica e devolve token JWT     |
-| GET    | `/me`       | authMiddleware| Devolve dados do utilizador atual |
-
-### `/api/tasks` — Tarefas (todas protegidas)
-
-| Método | Rota        | Descrição                                      |
-|--------|-------------|------------------------------------------------|
-| GET    | `/`         | Lista tarefas do utilizador autenticado        |
-| GET    | `/my-tasks` | Alias para listar as tarefas do utilizador     |
-| POST   | `/`         | Cria nova tarefa                               |
-| PUT    | `/:id`      | Atualiza tarefa (apenas o criador)             |
-| DELETE | `/:id`      | Elimina tarefa (apenas o criador)              |
-
-### `/api/users` — Utilizadores
-
-| Método | Rota              | Middleware              | Descrição                        |
-|--------|-------------------|-------------------------|----------------------------------|
-| GET    | `/profile`        | auth                    | Perfil do utilizador autenticado |
-| PUT    | `/profile`        | auth                    | Atualiza nome/email              |
-| PUT    | `/change-password`| auth                    | Altera palavra-passe             |
-| GET    | `/stats`          | auth                    | Estatísticas das tarefas         |
-| GET    | `/`               | auth + isAdmin          | Lista todos os utilizadores      |
-| POST   | `/`               | auth + isAdmin          | Cria utilizador (admin)          |
-| PUT    | `/:id`            | auth + isAdmin          | Edita utilizador (admin)         |
-| DELETE | `/:id`            | auth + isAdmin          | Elimina utilizador (admin)       |
-
-### `/api/attachments` — Anexos (todas protegidas)
-
-| Método | Rota                | Descrição                          |
-|--------|---------------------|------------------------------------|
-| POST   | `/task/:taskId`     | Faz upload de ficheiro para tarefa |
-| GET    | `/task/:taskId`     | Lista anexos de uma tarefa         |
-| GET    | `/:id/download`     | Descarrega um anexo                |
-| DELETE | `/:id`              | Elimina um anexo                   |
-
----
-
-## 🛡️ Middlewares
-
-### `authMiddleware.js`
-Verifica se o cabeçalho `Authorization: Bearer <token>` está presente e válido. Injeta `req.user` com os dados do utilizador decodificados do JWT.
-
-### `roleMiddleware.js`
-Exporta `isAdmin` — verifica se `req.user.tipo === 'admin'`. Usado nas rotas de gestão de utilizadores.
-
----
-
-## 🗄️ Modelos (Models)
-
-### `User.js`
-- `create(userData)` — Insere novo utilizador
-- `findByEmail(email)` — Busca por email (login)
-- `findById(id)` — Busca por ID (sem expor senha)
-- `getAll()` — Lista todos (sem senhas)
-- `getPermissions(userId)` — Lista permissões do utilizador
-- `update(id, userData)` — Atualização dinâmica de campos
-- `delete(id)` — Remove utilizador
-
-### `Task.js`
-- `create(taskData)` — Insere nova tarefa
-- `getAll()` — Lista todas com nome do utilizador (JOIN)
-- `getById(id)` — Busca por ID
-- `getByUserId(userId)` — Tarefas de um utilizador
-- `update(id, taskData)` — Atualiza campos
-- `delete(id)` — Remove tarefa
-
-### `Attachment.js`
-- `create(attachmentData)` — Regista ficheiro enviado
-- `getByTaskId(taskId)` — Lista anexos de uma tarefa
-- `getById(id)` — Busca por ID
-- `delete(id)` — Remove registo
-- `deleteByTaskId(taskId)` — Remove todos os anexos de uma tarefa
-
-### `Permission.js`
-- `getAll()` — Lista todas as permissões
-- `create(nome)` — Cria nova permissão
-- `assignToUser(utilizador_id, permissao_id)` — Atribui permissão
-- `removeFromUser(utilizador_id, permissao_id)` — Remove permissão
-- `getByUserId(userId)` — Permissões de um utilizador
-
----
-
-## 🗃️ Base de Dados
-
-O script SQL encontra-se em `Docs/SQl/modelo_fisico.sql`.
-
-### Tabelas
-
-| Tabela                | Descrição                                      |
-|-----------------------|------------------------------------------------|
-| `Utilizador`          | Utilizadores do sistema (admin/membro)         |
-| `Tarefa`              | Tarefas criadas pelos utilizadores             |
-| `Anexo`               | Ficheiros associados a tarefas                 |
-| `Permissao`           | Catálogo de permissões disponíveis             |
-| `Permissao_Utilizador`| Relação N:N entre utilizadores e permissões    |
-
-### Relações
-- `Tarefa.utilizador_id` → `Utilizador.id` (CASCADE DELETE)
-- `Anexo.tarefa_id` → `Tarefa.id` (CASCADE DELETE)
-- `Permissao_Utilizador` → chave composta (utilizador_id, permissao_id)
-
----
-
-## 🔒 Segurança
-
-- Palavras-passe armazenadas com **bcrypt** (salt rounds = 10)
-- Tokens JWT com expiração de **1 dia**
-- Rotas protegidas por middleware de autenticação
-- Utilizadores só podem editar/eliminar as suas próprias tarefas e anexos
-- Administradores não podem eliminar a própria conta
+| Pacote | Descrição |
+| :--- | :--- |
+| `express` | Framework HTTP |
+| `mysql2` | Driver MySQL com suporte a Promises |
+| `jsonwebtoken` | Geração e verificação de tokens JWT |
+| `bcryptjs` | Hash seguro de senhas |
+| `multer` | Upload de ficheiros multipart |
+| `socket.io` | Comunicação em tempo real |
+| `cors` | Gestão de Cross-Origin Resource Sharing |
+| `morgan` | Logger de pedidos HTTP |
+| `dotenv` | Carregamento de variáveis de ambiente |
+| `nodemon` | Reinício automático em desenvolvimento |

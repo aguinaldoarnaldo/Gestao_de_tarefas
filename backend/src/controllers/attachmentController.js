@@ -1,5 +1,6 @@
 const Attachment = require('../models/Attachment');
 const Task = require('../models/Task');
+const Board = require('../models/Board');
 const path = require('path');
 const fs = require('fs');
 
@@ -16,9 +17,17 @@ exports.uploadAttachment = async (req, res) => {
       return res.status(404).json({ message: 'Tarefa não encontrada.' });
     }
 
-    // Only creator of task can add attachments
-    if (task.utilizador_id !== req.user.id) {
-      return res.status(403).json({ message: 'Acesso negado. Somente o criador pode anexar arquivos.' });
+    const isTaskCreator = Number(task.utilizador_id) === Number(req.user.id);
+    
+    let isBoardCreator = false;
+    
+    if (task.quadro_id) {
+      const board = await Board.getById(task.quadro_id);
+      isBoardCreator = board && Number(board.utilizador_id) === Number(req.user.id);
+    }
+
+    if (!isTaskCreator && !isBoardCreator) {
+      return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para anexar arquivos a esta tarefa.' });
     }
 
     const attachmentId = await Attachment.create({
@@ -45,8 +54,16 @@ exports.getTaskAttachments = async (req, res) => {
       return res.status(404).json({ message: 'Tarefa não encontrada.' });
     }
 
-    // Only owner can see attachments (according to strict rule, though usually viewing is allowed for members if it was a team system, but here "Somente o Utilizador criador pode gerenciar seus Anexos")
-    if (task.utilizador_id !== req.user.id) {
+    const isTaskCreator = Number(task.utilizador_id) === Number(req.user.id);
+    
+    let isBoardCreator = false;
+    
+    if (task.quadro_id) {
+      const board = await Board.getById(task.quadro_id);
+      isBoardCreator = board && Number(board.utilizador_id) === Number(req.user.id);
+    }
+
+    if (!isTaskCreator && !isBoardCreator) {
       return res.status(403).json({ message: 'Acesso negado.' });
     }
 
@@ -69,8 +86,16 @@ exports.deleteAttachment = async (req, res) => {
 
     const task = await Task.getById(attachment.tarefa_id);
     
-    // Only creator can delete
-    if (task.utilizador_id !== req.user.id) {
+    // Only creator or board creator can delete
+    const isTaskCreator = Number(task.utilizador_id) === Number(req.user.id);
+    
+    let isBoardCreator = false;
+    if (task.quadro_id) {
+      const board = await Board.getById(task.quadro_id);
+      isBoardCreator = board && Number(board.utilizador_id) === Number(req.user.id);
+    }
+
+    if (!isTaskCreator && !isBoardCreator) {
       return res.status(403).json({ message: 'Acesso negado.' });
     }
 
@@ -97,7 +122,16 @@ exports.downloadAttachment = async (req, res) => {
     }
 
     const task = await Task.getById(attachment.tarefa_id);
-    if (task.utilizador_id !== req.user.id) {
+    const isTaskCreator = Number(task.utilizador_id) === Number(req.user.id);
+    
+    let isBoardCreator = false;
+    
+    if (task.quadro_id) {
+      const board = await Board.getById(task.quadro_id);
+      isBoardCreator = board && Number(board.utilizador_id) === Number(req.user.id);
+    }
+
+    if (!isTaskCreator && !isBoardCreator) {
       return res.status(403).json({ message: 'Acesso negado.' });
     }
 

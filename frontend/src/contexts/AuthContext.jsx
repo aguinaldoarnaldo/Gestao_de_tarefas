@@ -17,8 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => sessionStorage.getItem('token'));
 
   useEffect(() => {
-    if (token && !user) {
-      // Só chama loadUser se tiver token e ainda não tiver user
+    if (token) {
       loadUser();
     } else {
       setLoading(false);
@@ -26,55 +25,68 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const loadUser = async () => {
+    // Safety timeout: if anything hangs, force loading=false after 5s
+    const safetyTimer = setTimeout(() => {
+      console.warn('Auth load timed out, forcing loading=false');
+      setLoading(false);
+    }, 5000);
+
     try {
-      const userData = await apiService.getCurrentUser();
+      const userData = await apiService.getUserProfile();
       setUser(userData);
     } catch (error) {
       console.warn('Erro ao verificar sessão:', error.message);
-      // Só limpa a sessão se for erro de autenticação (token inválido/expirado)
-      const isAuthError = error.message && (
-        error.message.includes('401') ||
-        error.message.includes('400') ||
-        error.message.includes('Token') ||
-        error.message.includes('Acesso') ||
-        error.message.includes('inválido')
-      );
-      if (isAuthError) {
+      
+      // Se for erro de autenticação (401 ou 403), limpa a sessão
+      if (error.message.includes('401') || error.message.includes('403') || error.message.includes('Unauthorized')) {
         sessionStorage.removeItem('token');
         setToken(null);
         setUser(null);
       }
     } finally {
+      clearTimeout(safetyTimer);
       setLoading(false);
     }
   };
 
   const login = async (email, senha) => {
-    const response = await apiService.login(email, senha);
-    const { token: newToken, user: userData } = response;
-    
-    // Guarda token e user imediatamente — sem esperar por loadUser
-    sessionStorage.setItem('token', newToken);
-    setUser(userData);
-    setLoading(false);
-    setToken(newToken);
-    
-    return response;
+    try {
+      const response = await apiService.login(email, senha);
+      const { token: newToken, user: userData } = response;
+      
+      sessionStorage.setItem('token', newToken);
+      setUser(userData);
+      setToken(newToken);
+      setLoading(false);
+      
+      return response;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const register = async (nome, email, senha) => {
-    const response = await apiService.register(nome, email, senha);
-    return response;
+    try {
+      const response = await apiService.register(nome, email, senha);
+      const { token: newToken, user: userData } = response;
+      
+      if (newToken && userData) {
+        sessionStorage.setItem('token', newToken);
+        setUser(userData);
+        setToken(newToken);
+        setLoading(false);
+      }
+      
+      return response;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {
     sessionStorage.removeItem('token');
     setToken(null);
     setUser(null);
-  };
-
-  const isAdmin = () => {
-    return user?.tipo === 'admin';
   };
 
   const value = {
@@ -84,7 +96,6 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    isAdmin,
     isAuthenticated: !!user
   };
 

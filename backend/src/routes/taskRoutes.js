@@ -11,7 +11,5 @@ router.get('/board/:boardId', taskController.getTasksByBoard);
 router.get('/my-tasks', taskController.getUserTasks);
 router.put('/:id', taskController.updateTask);
 router.delete('/:id', taskController.deleteTask);
-router.post('/:id/members', taskController.addMemberToTask);
-router.get('/:id/members', taskController.getTaskMembers);
 
 module.exports = router;

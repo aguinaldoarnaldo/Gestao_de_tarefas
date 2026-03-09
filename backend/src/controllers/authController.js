@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
   try {
-    const { nome, email, senha, tipo } = req.body;
+    const { nome, email, senha } = req.body;
 
     if (!nome || !email || !senha) {
       return res.status(400).json({ message: 'Nome, email e senha são obrigatórios.' });
@@ -27,11 +27,31 @@ exports.register = async (req, res) => {
     const userId = await User.create({
       nome,
       email,
-      senha: hashedSenha,
-      tipo: tipo || 'membro'
+      senha: hashedSenha
     });
 
-    res.status(201).json({ message: 'Usuário registrado com sucesso!', userId });
+    // Generate token for automatic login
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('JWT_SECRET não definido!');
+      return res.status(500).json({ message: 'Configuração do servidor incorreta.' });
+    }
+
+    const token = jwt.sign(
+      { id: userId },
+      jwtSecret,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({ 
+      message: 'Usuário registrado com sucesso!', 
+      token,
+      user: {
+        id: userId,
+        nome,
+        email
+      }
+    });
   } catch (error) {
     console.error('REGISTER ERROR:', error.message);
     res.status(500).json({ message: 'Erro ao registrar usuário: ' + error.message });
@@ -63,7 +83,7 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, tipo: user.tipo },
+      { id: user.id },
       jwtSecret,
       { expiresIn: '7d' }
     );
@@ -73,8 +93,7 @@ exports.login = async (req, res) => {
       user: {
         id: user.id,
         nome: user.nome,
-        email: user.email,
-        tipo: user.tipo
+        email: user.email
       }
     });
   } catch (error) {

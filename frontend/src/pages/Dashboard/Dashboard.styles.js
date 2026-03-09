@@ -1,25 +1,25 @@
 import styled from 'styled-components';
 
 export const KanbanBoard = styled.div`
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
   overflow-x: auto;
-  min-height: calc(100vh - 120px);
-  background: transparent;
+  min-height: calc(100vh - 98px - 52px); /* SubNav + FilterBar */
+  background: ${props => props.$bg ? `linear-gradient(rgba(13,33,55,0.1), rgba(13,33,55,0.4)), url(${props.$bg})` : '#f1f5f9'};
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  align-items: flex-start;
 
-  &::-webkit-scrollbar {
-    height: 8px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 100px;
-  }
+  &::-webkit-scrollbar { height: 6px; }
+  &::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
   @media (max-width: 768px) {
     padding: 1rem;
     flex-direction: column;
-    gap: 2rem;
     height: auto;
     overflow-x: hidden;
   }
@@ -28,145 +28,114 @@ export const KanbanBoard = styled.div`
 export const KanbanColumn = styled.div`
   flex: 0 0 320px;
   width: 320px;
-  height: fit-content;
-  max-height: 100%;
   display: flex;
   flex-direction: column;
+  max-height: 100%;
 
   @media (max-width: 768px) {
-    flex: 1 0 auto;
     width: 100%;
-    max-width: 100%;
+    flex: 1 0 auto;
   }
 `;
 
 export const ColumnContent = styled.div`
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: ${props => props.$hasBg ? 'rgba(255, 255, 255, 0.75)' : '#e2e8f0'};
+  backdrop-filter: ${props => props.$hasBg ? 'blur(10px)' : 'none'};
+  border-radius: 16px;
+  border: ${props => props.$hasBg ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #cbd5e1'};
   display: flex;
   flex-direction: column;
-  padding: 8px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  padding: 0.5rem;
+  box-shadow: ${props => props.$hasBg ? '0 4px 12px rgba(0,0,0,0.05)' : 'none'};
+  max-height: calc(100vh - 250px);
 `;
 
 export const ColumnHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px 12px;
+  padding: 0.75rem 1rem;
 `;
 
 export const ColumnTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
 
   h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: white;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #475569;
     margin: 0;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 `;
 
 export const TaskCount = styled.span`
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 2px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
 `;
 
 export const TaskListContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.6rem;
   overflow-y: auto;
-  padding: 8px;
-  max-height: calc(100vh - 280px);
+  padding: 0.5rem;
+  min-height: 50px;
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 100px;
-  }
-
-  @media (max-width: 768px) {
-    max-height: none;
-    overflow-y: visible;
-  }
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 `;
 
 export const AddTaskButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 12px 16px;
-  margin-top: 8px;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  margin-top: 0.5rem;
   width: 100%;
-  border: none;
-  background: transparent;
-  border-radius: 16px;
-  color: rgba(255, 255, 255, 0.8);
+  border: 1px dashed #cbd5e1;
+  background: ${props => props.$hasBg ? 'transparent' : 'rgba(255, 255, 255, 0.5)'};
+  border-radius: 10px;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: #f8fafc;
+    color: #0d2137;
+    border-color: #0d2137;
+    border-style: solid;
   }
-`;
-
-export const ActionButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.7);
-  cursor: pointer;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-  }
-`;
-
-export const LoadingTasks = styled.div`
-  text-align: center;
-  padding: 40px 20px;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.9rem;
 `;
 
 export const FilterBar = styled.div`
   display: flex;
-  padding: 1rem 2.5rem;
+  padding: 0 2rem;
+  height: 52px;
   gap: 1.5rem;
-  flex-wrap: wrap;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   position: sticky;
-  top: 0;
-  z-index: 10;
+  top: 0; /* Sticky to the top of PageContent, which is just below headers */
+  z-index: 900;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 
   @media (max-width: 768px) {
-    padding: 0.75rem 1rem;
+    padding: 0 1rem;
+    height: auto;
+    min-height: 52px;
+    flex-wrap: wrap;
     gap: 0.75rem;
   }
 `;
@@ -174,40 +143,71 @@ export const FilterBar = styled.div`
 export const FilterGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  
+  gap: 0.5rem;
+
   label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #94a3b8;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 `;
 
 export const FilterSelect = styled.select`
-  padding: 8px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-size: 0.875rem;
-  color: white;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #1e293b;
+  background: #f8fafc;
   cursor: pointer;
-  font-weight: 500;
-  backdrop-filter: blur(10px);
-  
-  option {
-    background: #1e293b;
-    color: white;
-  }
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.15);
-  }
-  
+  font-weight: 600;
+  outline: none;
+
   &:focus {
-    outline: none;
-    border-color: #0061ff;
-    background: rgba(255, 255, 255, 0.1);
+    border-color: #0d2137;
+    background: #fff;
   }
+`;
+
+export const BoardTitleDisplay = styled.div`
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #0d2137;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  background: #eff6ff;
+  border-radius: 8px;
+  border: 1px solid #dbeafe;
+`;
+
+export const ActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f8fafc;
+    color: #0d2137;
+    border-color: #0d2137;
+  }
+`;
+
+export const LoadingTasks = styled.div`
+  padding: 2rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-weight: 500;
 `;

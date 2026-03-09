@@ -1,254 +1,233 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users as UsersIcon, 
-  LogOut, 
-  Settings, 
-  Bell,
-  Calendar,
-  MoreHorizontal,
-  ChevronRight,
-  ChevronLeft,
-  UserCircle2,
+import React, { useState } from 'react';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import {
   CheckCircle,
-  PieChart,
   Layout,
-  Users,
+  Calendar,
+  Settings,
+  LogOut,
   Search,
-  Briefcase
+  Menu,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   LayoutContainer,
-  Sidebar,
-  SidebarToggle,
-  SidebarLogo,
-  LogoIconSmall,
-  SidebarNav,
+  TopNav,
+  SubNav,
+  NavLogo,
+  NavLogoIcon,
+  NavItems,
   NavItem,
-  SidebarFooter,
-  MobileOverlay,
-  MainContent,
-  Header,
-  Hamburger,
-  HeaderLeft,
-  HeaderRight,
-  UserTag,
+  NavSearch,
+  NavRight,
+  UserBtn,
   UserAvatar,
-  ActionButton,
-  NotificationBadge,
-  NotificationDropdown,
-  NotificationHeader,
-  NotificationList,
-  NotificationItem,
-  InviteActions
+  UserName,
+  MobileMenuBtn,
+  MobileDrawer,
+  MobileNavItem,
+  MobileOverlay,
+  PageContent
 } from './MainLayout.styles';
-import apiService from '../../services/api';
 
-const MainLayout = ({ children, title }) => {
+const menuItems = [
+  { icon: <Layout size={16} />, label: 'Meus Quadros', path: '/boards' },
+  { icon: <Calendar size={16} />, label: 'Calendário', path: '/calendar' },
+  { icon: <Settings size={16} />, label: 'Configurações', path: '/settings' },
+];
+
+const MainLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isAdmin } = useAuth();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const { user, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const fetchNotifications = async () => {
-    try {
-      const data = await apiService.getMyNotifications();
-      setNotifications(data);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000); // Check every minute
-    return () => clearInterval(interval);
-  }, []);
-
-  const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-
-  const handleNotificationAction = async (id, action, inviteId = null) => {
-    try {
-      if (inviteId) {
-        await apiService.respondToInvite(inviteId, action === 'accept');
-      }
-      await apiService.markNotificationAsRead(id);
-      fetchNotifications();
-    } catch (error) {
-      console.error('Error updating notification:', error);
-    }
-  };
-
-  const handleLogout = () => {
+  const confirmLogout = () => {
     logout();
     navigate('/login');
+    setShowLogoutConfirm(false);
   };
 
-  const menuItems = [
-    { icon: <Layout size={20} />, label: 'Meus Quadros', path: '/boards' },
-    { icon: <Users size={20} />, label: 'Equipa', path: '/teams' },
-    { icon: <PieChart size={20} />, label: 'Analytics', path: '/analytics' },
-    { icon: <Calendar size={20} />, label: 'Calendar', path: '/calendar' },
-    { icon: <Settings size={20} />, label: 'Settings', path: '/settings' },
-  ];
-
-  if (isAdmin()) {
-    menuItems.push({ icon: <UsersIcon size={20} />, label: 'Users Admin', path: '/users' });
-  }
+  const handleNav = (path) => {
+    navigate(path);
+    setMobileOpen(false);
+  };
 
   return (
     <LayoutContainer>
-      <MobileOverlay $show={isMobileMenuOpen} onClick={toggleMobileMenu} />
+      {/* ══ HEADER — Logo + Search + User ═══════════════════════ */}
+      <TopNav>
+        <MobileMenuBtn onClick={() => setMobileOpen(o => !o)}>
+          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+        </MobileMenuBtn>
 
-      <Sidebar className={isSidebarCollapsed ? 'collapsed' : ''} $isOpen={isMobileMenuOpen}>
-        <SidebarToggle onClick={toggleSidebar}>
-          {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </SidebarToggle>
+        <NavLogo onClick={() => navigate('/boards')}>
+          <NavLogoIcon>
+            <CheckCircle size={17} />
+          </NavLogoIcon>
+          TaskFlow
+        </NavLogo>
 
-        <SidebarLogo onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          <LogoIconSmall>
-            <CheckCircle size={24} />
-          </LogoIconSmall>
-          <span>TaskFlow</span>
-        </SidebarLogo>
+        <div style={{ flex: 1 }} />
 
-        <SidebarNav>
-          {menuItems.map((item, index) => (
-            <NavItem 
-              key={index}
+        <NavSearch>
+          <Search size={15} />
+          <input type="text" placeholder="Pesquisar tarefas..." />
+        </NavSearch>
+
+        <NavRight>
+          <UserBtn onClick={() => navigate('/profile')}>
+            <UserAvatar>
+              {user?.nome ? user.nome.substring(0, 1).toUpperCase() : 'U'}
+            </UserAvatar>
+            <UserName>{user?.nome || 'Utilizador'}</UserName>
+          </UserBtn>
+
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            title="Sair"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '34px',
+              height: '34px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              color: '#fca5a5',
+              transition: 'all 0.2s'
+            }}
+          >
+            <LogOut size={16} />
+          </button>
+        </NavRight>
+      </TopNav>
+
+      {/* ══ SUB-NAV — Menu centrado ══════════════════════════════ */}
+      <SubNav>
+        <NavItems>
+          {menuItems.map(item => (
+            <NavItem
+              key={item.path}
               className={location.pathname === item.path ? 'active' : ''}
-              onClick={() => {
-                if (item.path !== '#') navigate(item.path);
-                setIsMobileMenuOpen(false);
-              }}
+              onClick={() => handleNav(item.path)}
             >
               {item.icon}
-              <span>{item.label}</span>
+              {item.label}
             </NavItem>
           ))}
-        </SidebarNav>
+        </NavItems>
+      </SubNav>
 
-        <SidebarFooter>
-          <NavItem style={{ color: '#ef4444' }} onClick={handleLogout}>
-            <LogOut size={20} />
-            <span>Sair</span>
-          </NavItem>
-        </SidebarFooter>
-      </Sidebar>
+      {/* ══ MOBILE DRAWER ════════════════════════════════════════ */}
+      <MobileOverlay $show={mobileOpen} onClick={() => setMobileOpen(false)} />
+      <MobileDrawer $open={mobileOpen}>
+        {menuItems.map(item => (
+          <MobileNavItem
+            key={item.path}
+            className={location.pathname === item.path ? 'active' : ''}
+            onClick={() => handleNav(item.path)}
+          >
+            {item.icon}
+            {item.label}
+          </MobileNavItem>
+        ))}
+        <MobileNavItem
+          onClick={() => setShowLogoutConfirm(true)}
+          style={{ color: '#fca5a5', marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.75rem' }}
+        >
+          <LogOut size={16} />
+          Sair
+        </MobileNavItem>
+      </MobileDrawer>
 
-      <MainContent $sidebarCollapsed={isSidebarCollapsed}>
-        <Header>
-          <HeaderLeft>
-            <Hamburger onClick={toggleMobileMenu}>
-              <MoreHorizontal size={24} />
-            </Hamburger>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>{title || 'TaskFlow'}</h1>
-          </HeaderLeft>
-
-          <div className="header-search-container" style={{ 
-            flex: 1, 
-            maxWidth: '400px', 
-            margin: '0 1.5rem', 
-            position: 'relative',
-            display: window.innerWidth < 640 ? 'none' : 'flex',
-            alignItems: 'center'
-          }}>
-            <Search size={18} style={{ 
-              position: 'absolute', 
-              left: '12px', 
-              color: '#94a3b8',
-              zIndex: 1
-            }} />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              style={{
-                width: '100%',
-                padding: '10px 10px 10px 40px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
-                background: 'rgba(255, 255, 255, 0.5)',
-                backdropFilter: 'blur(10px)',
-                fontSize: '0.85rem',
-                outline: 'none',
-                transition: 'all 0.3s'
-              }}
-            />
-          </div>
-
-          <HeaderRight>
-            <div style={{ position: 'relative' }}>
-              <ActionButton onClick={() => setShowNotifications(!showNotifications)} style={{ border: 'none', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(10px)' }}>
-                <Bell size={20} />
-                {notifications.filter(n => !n.lido).length > 0 && (
-                  <NotificationBadge>{notifications.filter(n => !n.lido).length}</NotificationBadge>
-                )}
-              </ActionButton>
-
-              <NotificationDropdown $show={showNotifications}>
-                <NotificationHeader>
-                  <h4>Notificações</h4>
-                  <button onClick={async () => { await apiService.markAllNotificationsAsRead(); fetchNotifications(); }}>Limpar Tudo</button>
-                </NotificationHeader>
-
-                <NotificationList>
-                  {notifications.length > 0 ? (
-                    notifications.map(notif => (
-                      <NotificationItem 
-                        key={notif.id} 
-                        $unread={!notif.lido} 
-                        $type={notif.tipo}
-                        onClick={() => {
-                          if (notif.link) navigate(notif.link);
-                          setShowNotifications(false);
-                          if (!notif.lido) handleNotificationAction(notif.id, 'read');
-                        }}
-                      >
-                        <div className="icon">
-                          <Bell size={18} />
-                        </div>
-                        <div className="content">
-                          <span className="title">{notif.titulo}</span>
-                          <span className="msg">{notif.mensagem}</span>
-                          {notif.tipo === 'convite' && !notif.lido && (
-                            <InviteActions>
-                              <button className="btn-accept" onClick={() => handleNotificationAction(notif.id, 'accept', notif.referencia_id)}>Aceitar</button>
-                              <button className="btn-reject" onClick={() => handleNotificationAction(notif.id, 'reject', notif.referencia_id)}>Recusar</button>
-                            </InviteActions>
-                          )}
-                          <span className="time">{new Date(notif.criado_em).toLocaleString()}</span>
-                        </div>
-                      </NotificationItem>
-                    ))
-                  ) : (
-                    <div style={{ textAlign: 'center', padding: '1rem', color: '#94a3b8' }}>
-                      Sem novas notificações
-                    </div>
-                  )}
-                </NotificationList>
-              </NotificationDropdown>
+      {/* ── LOGOUT CONFIRMATION MODAL ── */}
+      {showLogoutConfirm && (
+        <div 
+          onClick={() => setShowLogoutConfirm(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(13, 33, 55, 0.6)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 5000,
+            padding: '20px'
+          }}
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              padding: '2rem',
+              borderRadius: '24px',
+              maxWidth: '380px',
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <div style={{
+              width: '60px',
+              height: '60px',
+              background: '#fee2e2',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem',
+              color: '#ef4444'
+            }}>
+              <LogOut size={30} />
             </div>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#0d2137', fontWeight: 800 }}>Deseja mesmo sair?</h3>
+            <p style={{ margin: '0 0 2rem', color: '#64748b', fontSize: '0.9rem', lineHeight: 1.5 }}>
+              Terá de iniciar sessão novamente para aceder às suas tarefas.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <button 
+                onClick={() => setShowLogoutConfirm(false)}
+                style={{
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  background: '#ffffff',
+                  color: '#64748b',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={confirmLogout}
+                style={{
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#0d2137',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Sim, sair
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <UserTag onClick={() => navigate('/profile')} style={{ border: 'none', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(10px)' }}>
-              <UserAvatar>
-                {user?.nome ? user.nome.substring(0, 1).toUpperCase() : 'U'}
-              </UserAvatar>
-              <div className="user-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>
-                  {user?.nome || 'Utilizador'}
-                </span>
-              </div>
-            </UserTag>
-          </HeaderRight>
-        </Header>
-        {children}
-      </MainContent>
+      {/* ══ CONTEÚDO DA PÁGINA ═══════════════════════════════════ */}
+      <PageContent>
+        {children || <Outlet />}
+      </PageContent>
     </LayoutContainer>
   );
 };
