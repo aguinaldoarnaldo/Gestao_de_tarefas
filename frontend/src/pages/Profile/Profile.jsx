@@ -5,15 +5,10 @@ import apiService from '../../services/api';
 import './Profile.css';
 
 const Profile = () => {
-  const { user, loadUser } = useAuth();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     nome: '',
     email: ''
-  });
-  const [passwordData, setPasswordData] = useState({
-    senhaAtual: '',
-    novaSenha: '',
-    confirmarSenha: ''
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,14 +52,6 @@ const Profile = () => {
     }
   };
 
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -93,40 +80,6 @@ const Profile = () => {
     }
   };
 
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
-
-    if (!passwordData.senhaAtual) {
-      newErrors.senhaAtual = 'Senha atual é obrigatória';
-    }
-    if (!passwordData.novaSenha) {
-      newErrors.novaSenha = 'Nova senha é obrigatória';
-    } else if (passwordData.novaSenha.length < 6) {
-      newErrors.novaSenha = 'Senha deve ter no mínimo 6 caracteres';
-    }
-    if (passwordData.novaSenha !== passwordData.confirmarSenha) {
-      newErrors.confirmarSenha = 'As senhas não coincidem';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await apiService.updatePassword(passwordData);
-      setSuccess('Senha alterada com sucesso!');
-      setPasswordData({ senhaAtual: '', novaSenha: '', confirmarSenha: '' });
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (error) {
-      setErrors({ passwordSubmit: error.message });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   if (!user) {
     return <div className="loading-profile">Carregando...</div>;
   }
@@ -139,9 +92,7 @@ const Profile = () => {
         </div>
         <div>
           <h2 style={{ color: 'white', margin: 0 }}>{user.nome}</h2>
-          <p className="profile-role">
-            {user.tipo === 'admin' ? 'Administrador' : 'Membro'}
-          </p>
+          <p className="profile-role">Utilizador</p>
         </div>
       </div>
 
@@ -221,68 +172,6 @@ const Profile = () => {
             <button type="submit" className="btn-primary" disabled={isSubmitting}>
               <Save size={18} />
               {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
-            </button>
-          </form>
-        </div>
-
-        <div className="profile-section">
-          <h2>
-            <Lock size={20} />
-            Alterar Senha
-          </h2>
-          <form onSubmit={handlePasswordSubmit}>
-            {errors.passwordSubmit && (
-              <div className="error-banner">{errors.passwordSubmit}</div>
-            )}
-
-            <div className="form-group">
-              <label>Senha Atual</label>
-              <div className="input-icon">
-                <Lock size={18} />
-                <input
-                  type="password"
-                  name="senhaAtual"
-                  value={passwordData.senhaAtual}
-                  onChange={handlePasswordChange}
-                  className={errors.senhaAtual ? 'error' : ''}
-                />
-              </div>
-              {errors.senhaAtual && <span className="error-msg">{errors.senhaAtual}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Nova Senha</label>
-              <div className="input-icon">
-                <Lock size={18} />
-                <input
-                  type="password"
-                  name="novaSenha"
-                  value={passwordData.novaSenha}
-                  onChange={handlePasswordChange}
-                  className={errors.novaSenha ? 'error' : ''}
-                />
-              </div>
-              {errors.novaSenha && <span className="error-msg">{errors.novaSenha}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Confirmar Nova Senha</label>
-              <div className="input-icon">
-                <Lock size={18} />
-                <input
-                  type="password"
-                  name="confirmarSenha"
-                  value={passwordData.confirmarSenha}
-                  onChange={handlePasswordChange}
-                  className={errors.confirmarSenha ? 'error' : ''}
-                />
-              </div>
-              {errors.confirmarSenha && <span className="error-msg">{errors.confirmarSenha}</span>}
-            </div>
-
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
-              <Lock size={18} />
-              {isSubmitting ? 'Alterando...' : 'Alterar Senha'}
             </button>
           </form>
         </div>

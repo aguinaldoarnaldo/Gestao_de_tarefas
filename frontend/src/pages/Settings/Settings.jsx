@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, Lock, Bell, Moon, Save, CheckCircle, Globe, Shield, Trash2, Loader2 } from 'lucide-react';
+import { User, Bell, Moon, Save, CheckCircle, Globe, Shield, Trash2, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 import './Settings.css';
 
 const Settings = () => {
-  const { user, loadUser } = useAuth();
+  const { user } = useAuth();
 
   const [profile, setProfile] = useState({ nome: '', email: '' });
-  const [password, setPassword] = useState({ senhaAtual: '', novaSenha: '', confirmarSenha: '' });
   const [notifications, setNotifications] = useState({ email: true, desktop: true, mobile: false });
   const [preferences, setPreferences] = useState({ darkMode: false, language: 'pt' });
   
@@ -38,11 +37,6 @@ const Settings = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-    setPassword(p => ({ ...p, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
-  };
 
   const saveProfile = async (e) => {
     e.preventDefault();
@@ -56,7 +50,6 @@ const Settings = () => {
     try {
       await apiService.updateUserProfile(profile);
       setSuccess('Perfil atualizado com sucesso');
-      loadUser();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setErrors({ submit: err.message });
@@ -65,30 +58,6 @@ const Settings = () => {
     }
   };
 
-  const savePassword = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
-    if (!password.senhaAtual) newErrors.senhaAtual = 'Senha atual é obrigatória';
-    if (!password.novaSenha || password.novaSenha.length < 6) newErrors.novaSenha = 'A nova senha deve ter pelo menos 6 caracteres';
-    if (password.novaSenha !== password.confirmarSenha) newErrors.confirmarSenha = 'As senhas não coincidem';
-    if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
-
-    setSaving(true);
-    setErrors({});
-    try {
-      await apiService.updatePassword({ 
-        senhaAtual: password.senhaAtual, 
-        novaSenha: password.novaSenha 
-      });
-      setSuccess('Senha alterada com sucesso');
-      setPassword({ senhaAtual: '', novaSenha: '', confirmarSenha: '' });
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
-      setErrors({ passwordSubmit: err.message });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const toggleNotification = (key) => {
     setNotifications(prev => {
@@ -139,25 +108,12 @@ const Settings = () => {
         return (
           <div className="settings-card" key="security-tab">
             <h3><Shield size={20} /> Segurança</h3>
-            <form onSubmit={savePassword}>
-              {errors.passwordSubmit && <div className="error-banner">{errors.passwordSubmit}</div>}
-              <div className="form-group">
-                <label>Senha Atual</label>
-                <input type="password" name="senhaAtual" value={password.senhaAtual} onChange={handlePasswordChange} />
-              </div>
-              <div className="form-group">
-                <label>Nova Senha</label>
-                <input type="password" name="novaSenha" value={password.novaSenha} onChange={handlePasswordChange} />
-              </div>
-              <div className="form-group">
-                <label>Confirmar Nova Senha</label>
-                <input type="password" name="confirmarSenha" value={password.confirmarSenha} onChange={handlePasswordChange} />
-              </div>
-              <button className="btn-save" type="submit" disabled={saving}>
-                {saving ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />}
-                Atualizar Senha
-              </button>
-            </form>
+            <p style={{ color: '#64748b', lineHeight: '1.6' }}>
+              A alteração de senha está disponível através do suporte. Por agora, mantenha as suas credenciais seguras e não as partilhe com ninguém.
+            </p>
+            <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <p style={{ fontWeight: '600', color: '#0061ff', margin: 0 }}>🔒 A sua conta está protegida com JWT</p>
+            </div>
           </div>
         );
 
@@ -239,7 +195,7 @@ const Settings = () => {
       default:
         return null;
     }
-  }, [activeTab, profile, password, notifications, preferences, saving, errors]);
+  }, [activeTab, profile, notifications, preferences, saving, errors]);
 
   if (!user) {
     return (
