@@ -50,6 +50,42 @@ export const Controls = styled.div`
   border: 1px solid #e2e8f0;
 `;
 
+export const FilterContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  
+  label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+`;
+
+export const BoardSelect = styled.select`
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0d2137;
+  background: #f8fafc;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+
+  &:focus {
+    border-color: #2a7de1;
+    background: #fff;
+  }
+`;
+
 export const ControlButton = styled.button`
   background: #fff;
   border: 1px solid #e2e8f0;

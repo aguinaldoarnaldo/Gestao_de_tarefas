@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Plus } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Plus, Filter as FilterIcon } from 'lucide-react';
 import TaskModal from '../../components/TaskModal/TaskModal';
 import apiService from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -11,13 +11,25 @@ const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [tasks, setTasks] = useState([]);
+  const [boards, setBoards] = useState([]);
+  const [selectedBoardId, setSelectedBoardId] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchTasks();
+    fetchBoards();
   }, []);
+
+  const fetchBoards = async () => {
+    try {
+      const data = await apiService.getBoards();
+      setBoards(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error('Error fetching boards:', e);
+    }
+  };
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -83,8 +95,16 @@ const Calendar = () => {
 
   const getTasksForDay = (dayObj) => {
     const dStr = `${dayObj.year}-${String(dayObj.month + 1).padStart(2, '0')}-${String(dayObj.day).padStart(2, '0')}`;
-    return tasks.filter(t => t.data_vencimento && t.data_vencimento.slice(0, 10) === dStr);
+    return tasks.filter(t => {
+      const dateMatch = t.data_vencimento && t.data_vencimento.slice(0, 10) === dStr;
+      const boardMatch = selectedBoardId === 'all' || String(t.quadro_id) === String(selectedBoardId);
+      return dateMatch && boardMatch;
+    });
   };
+
+  const filteredTasks = tasks.filter(t => 
+    selectedBoardId === 'all' || String(t.quadro_id) === String(selectedBoardId)
+  );
 
   const isToday = (dayObj) => {
     return (
@@ -113,17 +133,19 @@ const Calendar = () => {
   };
 
   const openModal = (dayObj) => {
-    const date = new Date(dayObj.year, dayObj.month, dayObj.day);
-    setModalDate(date);
+    // Manually format date to YYYY-MM-DD to avoid timezone shifts from toISOString()
+    const year = dayObj.year;
+    const month = String(dayObj.month + 1).padStart(2, '0');
+    const day = String(dayObj.day).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
+    setModalDate(dateStr);
     setModalOpen(true);
   };
 
   const handleSaveTask = async (formData) => {
     try {
-      await apiService.createTask({
-        ...formData,
-        data_vencimento: modalDate.toISOString().slice(0, 10),
-      });
+      await apiService.createTask(formData);
       await fetchTasks();
       setModalOpen(false);
     } catch (e) {
@@ -135,7 +157,25 @@ const Calendar = () => {
     <S.CalendarPage>
       <S.MainContent>
         <S.Header>
-          <S.Title>Calendário</S.Title>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+            <S.Title>Calendário</S.Title>
+            
+            <S.FilterContainer>
+              <FilterIcon size={16} color="#64748b" />
+              <label>Filtrar Quadro:</label>
+              <S.BoardSelect 
+                value={selectedBoardId} 
+                onChange={(e) => setSelectedBoardId(e.target.value)}
+              >
+                <option value="all">Todos os Quadros</option>
+                <option value="null">Sem Quadro</option>
+                {boards.map(board => (
+                  <option key={board.id} value={board.id}>{board.nome}</option>
+                ))}
+              </S.BoardSelect>
+            </S.FilterContainer>
+          </div>
+
           <S.Controls>
             <S.ControlButton onClick={handlePrevMonth}><ChevronLeft size={20} /></S.ControlButton>
             <S.MonthDisplay>{monthNames[currentMonth]} {currentYear}</S.MonthDisplay>
@@ -175,10 +215,10 @@ const Calendar = () => {
         <S.TaskList>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Carregando...</div>
-          ) : tasks.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Puxa vida! Nenhuma tarefa por aqui.</div>
+          ) : filteredTasks.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Nenhuma tarefa encontrada.</div>
           ) : (
-            tasks.slice(0, 10).map(task => (
+            filteredTasks.slice(0, 10).map(task => (
               <S.TaskCard key={task.id}>
                 <S.TaskCardTitle>{task.titulo}</S.TaskCardTitle>
                 <S.TaskCardMeta>
@@ -198,6 +238,8 @@ const Calendar = () => {
           onSave={handleSaveTask}
           task={null}
           defaultDate={modalDate}
+          defaultBoardId={selectedBoardId !== 'all' && selectedBoardId !== 'null' ? selectedBoardId : null}
+          isFromCalendar={true}
         />
       )}
     </S.CalendarPage>

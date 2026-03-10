@@ -64,8 +64,18 @@ const Boards = () => {
   }, []);
 
   useEffect(() => {
-    fetchBoards(true);
-  }, [fetchBoards]);
+    if (user) {
+      fetchBoards(true);
+    }
+  }, [fetchBoards, user]);
+
+  if (loading && !boards.length && !user) {
+    return (
+      <div className="bp-loading">
+        <Loader2 size={32} className="bp-spin"/> Verificando autenticação...
+      </div>
+    );
+  }
 
   /* ── Open edit modal ──────────────────────────────── */
   const openEditModal = (board, e) => {
