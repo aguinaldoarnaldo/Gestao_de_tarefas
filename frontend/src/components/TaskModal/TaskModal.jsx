@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, AlertCircle, Flag } from 'lucide-react';
+import { X, Calendar, AlertCircle, Flag, Layout } from 'lucide-react';
 import AttachmentManager from '../AttachmentManager/AttachmentManager';
 import apiService from '../../services/api';
 import {
@@ -21,7 +21,7 @@ import {
   UserItem
 } from './TaskModal.styles';
 
-const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, defaultBoardId = null }) => {
+const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, defaultBoardId = null, isFromCalendar = false }) => {
   const [formData, setFormData] = useState({
     titulo: '',
     descricao: '',
@@ -32,6 +32,22 @@ const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, d
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [boards, setBoards] = useState([]);
+
+  useEffect(() => {
+    if (isOpen && isFromCalendar && !task) {
+      fetchBoards();
+    }
+  }, [isOpen, isFromCalendar, task]);
+
+  const fetchBoards = async () => {
+    try {
+      const data = await apiService.getBoards();
+      setBoards(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching boards:', error);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -40,7 +56,7 @@ const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, d
         descricao: task?.descricao || '',
         status: task?.status || 'Pendente',
         prioridade: task?.prioridade || 'Média',
-        data_vencimento: task?.data_vencimento ? task.data_vencimento.slice(0, 10) : (defaultDate ? defaultDate.toISOString().slice(0, 10) : ''),
+        data_vencimento: task?.data_vencimento ? task.data_vencimento.slice(0, 10) : (defaultDate || ''),
         quadro_id: task?.quadro_id || defaultBoardId || ''
       });
     }
@@ -159,6 +175,22 @@ const TaskModal = ({ isOpen, onClose, task = null, onSave, defaultDate = null, d
               {errors.data_vencimento && <ErrorMsg>{errors.data_vencimento}</ErrorMsg>}
             </FormGroup>
 
+            {isFromCalendar && !task && (
+              <FormGroup>
+                <label>Quadro</label>
+                <InputIcon>
+                  <Layout size={18} color="#64748b" />
+                  <select name="quadro_id" value={formData.quadro_id} onChange={handleChange}>
+                    <option value="">Nenhum (Sem quadro)</option>
+                    {boards.map(board => (
+                      <option key={board.id} value={board.id}>
+                        {board.nome}
+                      </option>
+                    ))}
+                  </select>
+                </InputIcon>
+              </FormGroup>
+            )}
           </FormRow>
 
           {task && (

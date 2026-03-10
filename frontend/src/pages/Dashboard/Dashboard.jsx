@@ -173,7 +173,8 @@ const Dashboard = () => {
     
     let matchesDate = true;
     if (filterDate === 'today') {
-      const today = new Date().toISOString().slice(0, 10);
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       matchesDate = task.data_vencimento && task.data_vencimento.slice(0, 10) === today;
     } else if (filterDate === 'overdue') {
       matchesDate = new Date(task.data_vencimento) < new Date() && task.status !== 'Concluída';
