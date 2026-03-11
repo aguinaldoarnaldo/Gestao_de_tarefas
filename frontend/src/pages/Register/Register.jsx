@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Lock, UserPlus, CheckCircle, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import './Register.css';
 
 const Register = () => {
@@ -16,6 +17,8 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginLoader, setShowLoginLoader] = useState(false);
+  const [loaderFadeOut, setLoaderFadeOut] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -43,21 +46,39 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
     setIsLoading(true);
+    setShowLoginLoader(true);
     
     try {
       await register(formData.nome, formData.email, formData.senha);
-      navigate('/boards');
+      
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setLoaderFadeOut(true);
+      
+      await new Promise(resolve => setTimeout(resolve, 400));
+      // Redireccionamento suave
     } catch (error) {
       console.error('Registration Error:', error);
       setErrors({ submit: error.message || 'Erro ao criar conta' });
-    } finally {
       setIsLoading(false);
+      setShowLoginLoader(false);
+      setLoaderFadeOut(false);
     }
   };
 
+  if (showLoginLoader) {
+    return (
+      <LoadingScreen
+        fadeOut={loaderFadeOut}
+        message="A criar o seu espaço de trabalho..."
+      />
+    );
+  }
+
   return (
-    <div className="register-container">
+    <>
+      <div className="register-container">
       <div className="register-card">
         <div className="register-header">
           <Link to="/" className="register-logo">
@@ -158,6 +179,7 @@ const Register = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
