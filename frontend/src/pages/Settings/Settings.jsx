@@ -7,19 +7,15 @@ import './Settings.css';
 const Settings = () => {
   const { user } = useAuth();
 
-  const [profile, setProfile] = useState({ nome: '', email: '' });
   const [notifications, setNotifications] = useState({ email: true, desktop: true, mobile: false });
   const [preferences, setPreferences] = useState({ darkMode: false, language: 'pt' });
   
   const [success, setSuccess] = useState('');
   const [errors, setErrors] = useState({});
-  const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('account');
+  const [activeTab, setActiveTab] = useState('notifications');
 
-  // Load initial state from storage safely
   useEffect(() => {
     if (user) {
-      setProfile({ nome: user.nome || '', email: user.email || '' });
       try {
         const storedNotif = sessionStorage.getItem('settings_notifications');
         const storedPrefs = sessionStorage.getItem('settings_preferences');
@@ -31,32 +27,7 @@ const Settings = () => {
     }
   }, [user]);
 
-  const handleProfileChange = (e) => {
-    const { name, value } = e.target;
-    setProfile(p => ({ ...p, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
-  };
 
-
-  const saveProfile = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
-    if (!profile.nome?.trim()) newErrors.nome = 'Nome é obrigatório';
-    if (!profile.email?.trim()) newErrors.email = 'Email é obrigatório';
-    if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
-
-    setSaving(true);
-    setErrors({});
-    try {
-      await apiService.updateUserProfile(profile);
-      setSuccess('Perfil atualizado com sucesso');
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
-      setErrors({ submit: err.message });
-    } finally {
-      setSaving(false);
-    }
-  };
 
 
   const toggleNotification = (key) => {
@@ -80,42 +51,7 @@ const Settings = () => {
 
   const renderTabContent = useCallback(() => {
     switch (activeTab) {
-      case 'account':
-        return (
-          <div className="settings-card" key="account-tab">
-            <h3><User size={20} /> Conta e Perfil</h3>
-            <form onSubmit={saveProfile}>
-              {errors.submit && <div className="error-banner">{errors.submit}</div>}
-              <div className="form-group">
-                <label>Nome Completo</label>
-                <input name="nome" value={profile.nome} onChange={handleProfileChange} />
-                {errors.nome && <span className="error-text">{errors.nome}</span>}
-              </div>
-              <div className="form-group">
-                <label>E-mail</label>
-                <input name="email" value={profile.email} onChange={handleProfileChange} />
-                {errors.email && <span className="error-text">{errors.email}</span>}
-              </div>
-              <button className="btn-save" type="submit" disabled={saving}>
-                {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                Salvar Alterações
-              </button>
-            </form>
-          </div>
-        );
 
-      case 'security':
-        return (
-          <div className="settings-card" key="security-tab">
-            <h3><Shield size={20} /> Segurança</h3>
-            <p style={{ color: '#64748b', lineHeight: '1.6' }}>
-              A alteração de senha está disponível através do suporte. Por agora, mantenha as suas credenciais seguras e não as partilhe com ninguém.
-            </p>
-            <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <p style={{ fontWeight: '600', color: '#0061ff', margin: 0 }}>🔒 A sua conta está protegida com JWT</p>
-            </div>
-          </div>
-        );
 
       case 'notifications':
         return (
@@ -195,7 +131,7 @@ const Settings = () => {
       default:
         return null;
     }
-  }, [activeTab, profile, notifications, preferences, saving, errors]);
+  }, [activeTab, notifications, preferences, errors]);
 
   if (!user) {
     return (
@@ -211,12 +147,7 @@ const Settings = () => {
       
       <div className="settings-layout">
         <aside className="settings-menu">
-          <button className={activeTab === 'account' ? 'active' : ''} onClick={() => setActiveTab('account')}>
-            <User size={18} /> Conta
-          </button>
-          <button className={activeTab === 'security' ? 'active' : ''} onClick={() => setActiveTab('security')}>
-            <Shield size={18} /> Segurança
-          </button>
+
           <button className={activeTab === 'notifications' ? 'active' : ''} onClick={() => setActiveTab('notifications')}>
              <Bell size={18} /> Notificações
           </button>

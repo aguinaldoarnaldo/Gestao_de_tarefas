@@ -1,0 +1,43 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36" version="29.6.1">
+  <diagram name="Página-1" id="9oO1ZsKKGZb7xAoAa3hS">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-15" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Quadro&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;-id : int&amp;nbsp;&lt;br&gt;-titulo : string&amp;nbsp;&lt;br&gt;-descricao : text&amp;nbsp;&lt;br&gt;-foto_fundo : string&lt;br&gt;-data_criacao : datetime&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- utilizador_id : int&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ criarQuadro()&amp;nbsp;&lt;br&gt;+ editarQuadro()&amp;nbsp;&lt;br&gt;+ excluirQuadro()&amp;nbsp;&lt;br&gt;+ listarTarefas()&amp;nbsp;&lt;br&gt;+ alterarFundo()&lt;/p&gt;" vertex="1">
+          <mxGeometry height="210" width="160" x="60" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-19" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Tarefa&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;-id : int&lt;br&gt;-titulo : string&amp;nbsp;&lt;br&gt;-descricao : text&amp;nbsp;&lt;br&gt;-status : enum&amp;nbsp;&lt;br&gt;-prioridade : enum&lt;br&gt;-data_vencimento : date&amp;nbsp;&lt;br&gt;-data_criacao : datetime&amp;nbsp;&lt;br&gt;-data_atualizacao : datetime&lt;br&gt;-utilizador_id : int&lt;br&gt;-quadro_id : int&amp;nbsp;&amp;nbsp;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ criarTarefa()&amp;nbsp;&lt;br&gt;+ editarTarefa()&amp;nbsp;&lt;br&gt;+ excluirTarefa()&amp;nbsp;&lt;br&gt;+ mudarStatus()&amp;nbsp;&lt;br&gt;+ alterarPrioridade()&amp;nbsp;&lt;br&gt;+ definirDataVencimento()&amp;nbsp;&lt;br&gt;+ adicionarAnexo()&amp;nbsp;&lt;br&gt;+ listarAnexos()&lt;/p&gt;" vertex="1">
+          <mxGeometry height="310" width="190" x="500" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-23" edge="1" parent="1" source="bAxymhc-UsuFTeF13NQ_-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.454;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=ERoneToMany;endFill=0;startArrow=ERmandOne;startFill=0;exitX=0.994;exitY=0.883;exitDx=0;exitDy=0;exitPerimeter=0;" target="bAxymhc-UsuFTeF13NQ_-19" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="495" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-31" edge="1" parent="1" source="bAxymhc-UsuFTeF13NQ_-20" style="edgeStyle=entityRelationEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERoneToMany;endFill=0;startArrow=ERmandOne;startFill=0;" target="bAxymhc-UsuFTeF13NQ_-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-20" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Utilizador&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;-id : int&amp;nbsp;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;-nome : string&amp;nbsp;&lt;br&gt;-email : string&amp;nbsp;&lt;br&gt;-senha : string&amp;nbsp;&lt;br&gt;-data_criacao : datetime&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ criarConta()&amp;nbsp;&lt;br&gt;+ autenticar(email,senha)&amp;nbsp;&lt;br&gt;+ atualizarPerfil()&amp;nbsp;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ excluirConta()&amp;nbsp;&lt;br&gt;+ listarQuadros()&lt;/p&gt;" vertex="1">
+          <mxGeometry height="200" width="160" x="60" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-21" parent="1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Anexo&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;-id : int&amp;nbsp;&lt;br&gt;-nome_arquivo : string&amp;nbsp;&lt;br&gt;-caminho_arquivo : string&amp;nbsp;&lt;br&gt;-tipo_arquivo : string&amp;nbsp;&lt;br&gt;-tamanho_arquivo : int&amp;nbsp;&lt;br&gt;-data_upload : datetime&amp;nbsp;&lt;br&gt;-tarefa_id : int&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ adicionarAnexo()&amp;nbsp;&lt;br&gt;+ removerAnexo()&amp;nbsp;&lt;br&gt;+ baixarArquivo()&amp;nbsp;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;+ visualizarArquivo()&lt;/span&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="220" width="160" x="515" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-24" edge="1" parent="1" source="bAxymhc-UsuFTeF13NQ_-20" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;endArrow=ERoneToMany;endFill=0;startArrow=ERmandOne;startFill=0;" target="bAxymhc-UsuFTeF13NQ_-15" value="">
+          <mxGeometry relative="1" width="100" as="geometry">
+            <Array as="points" />
+            <mxPoint x="190" y="580" as="sourcePoint" />
+            <mxPoint x="290" y="580" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-26" edge="1" parent="1" source="bAxymhc-UsuFTeF13NQ_-21" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERoneToMany;startFill=0;endArrow=ERmandOne;endFill=0;" target="bAxymhc-UsuFTeF13NQ_-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bAxymhc-UsuFTeF13NQ_-32" edge="1" parent="1" source="bAxymhc-UsuFTeF13NQ_-15" style="edgeStyle=entityRelationEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.819;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=ERoneToMany;endFill=0;startArrow=ERmandOne;startFill=0;" target="bAxymhc-UsuFTeF13NQ_-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
