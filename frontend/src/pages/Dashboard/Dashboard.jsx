@@ -13,6 +13,7 @@ import TaskCard from '../../components/TaskCard/TaskCard';
 import TaskModal from '../../components/TaskModal/TaskModal';
 import TaskDetails from '../../components/TaskDetails/TaskDetails';
 import apiService from '../../services/api';
+import socketService from '../../services/socket';
 import {
   KanbanBoard,
   KanbanColumn,
@@ -82,6 +83,34 @@ const Dashboard = () => {
     };
 
     loadInitialData();
+
+    // Socket listeners for real-time updates
+    const socket = socketService.connect();
+    socketService.joinBoard(boardId);
+
+    const handleBoardUpdate = (updatedBoard) => {
+      if (Number(updatedBoard.id) === Number(boardId)) {
+        if (isMounted.current) setCurrentBoard(updatedBoard);
+      }
+    };
+
+    const handleTaskChange = () => {
+      fetchTasks();
+    };
+
+    socket.on('board_updated', handleBoardUpdate);
+    socket.on('task_changed', handleTaskChange);
+    socket.on('board_deleted', (data) => {
+      if (Number(data.id) === Number(boardId)) {
+        navigate('/boards');
+      }
+    });
+
+    return () => {
+      socket.off('board_updated', handleBoardUpdate);
+      socket.off('task_changed', handleTaskChange);
+      socket.off('board_deleted');
+    };
   }, [boardId, navigate]);
 
   const fetchTasks = async () => {
@@ -244,7 +273,7 @@ const Dashboard = () => {
         )}
       </FilterBar>
 
-      <KanbanBoard $hasBg={!!currentBoard?.foto_fundo} $bg={currentBoard?.foto_fundo ? `http://localhost:5000/${currentBoard.foto_fundo}` : null}>
+      <KanbanBoard $hasBg={!!currentBoard?.foto_fundo} $bg={apiService.getImageUrl(currentBoard?.foto_fundo)}>
         {columns.map((col, idx) => (
           <KanbanColumn key={idx} $hasBg={!!currentBoard?.foto_fundo}>
             <ColumnContent $hasBg={!!currentBoard?.foto_fundo}>

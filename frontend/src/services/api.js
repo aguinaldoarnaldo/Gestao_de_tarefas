@@ -1,8 +1,18 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = 'http://localhost:5000/api';
+export const BASE_URL = 'http://localhost:5000';
 
 class ApiService {
   constructor() {
     this.baseURL = API_BASE_URL;
+  }
+
+  // Utility to handle image URLs safely
+  getImageUrl(path) {
+    if (!path) return null;
+    if (path.startsWith('http')) return path; // Already a full URL
+    // Ensure path doesn't start with / if BASE_URL ends with / or vice-versa
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${BASE_URL}/${cleanPath}`;
   }
 
   // Get auth headers
@@ -155,7 +165,7 @@ class ApiService {
   async updateUserProfile(userData) {
     return this.request('/users/profile', {
       method: 'PUT',
-      body: JSON.stringify(userData)
+      body: userData instanceof FormData ? userData : JSON.stringify(userData)
     });
   }
 
@@ -171,6 +181,20 @@ class ApiService {
     return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ nome, email, senha })
+    });
+  }
+
+  async forgotPassword(email) {
+    return this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  }
+
+  async resetPassword(token, newPassword) {
+    return this.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword })
     });
   }
 

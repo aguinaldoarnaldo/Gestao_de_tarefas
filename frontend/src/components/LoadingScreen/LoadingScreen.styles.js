@@ -29,12 +29,12 @@ const dot = keyframes`
 export const LoadingContainer = styled.div`
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 50%, #e8f0fe 100%);
+  background-color: #ffffff;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
 
   &.fade-out {
     opacity: 0;
@@ -52,25 +52,28 @@ export const LoadingContent = styled.div`
 `;
 
 export const LogoPulse = styled.div`
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #0061ff, #8b5cf6);
-  border-radius: 22px;
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, #0d2137, #2a7de1);
+  border-radius: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
   color: white;
-  box-shadow: 0 12px 40px rgba(0, 97, 255, 0.35);
-  animation: ${pulse} 1.8s ease-in-out infinite;
+  box-shadow: 0 20px 40px rgba(13, 33, 55, 0.25);
+  animation: ${pulse} 2s ease-in-out infinite;
 `;
 
 export const BrandName = styled.h1`
   font-family: 'Outfit', 'Inter', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #0d2137;
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #0d2137, #2a7de1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 `;
 
 export const LoadingBarContainer = styled.div`
@@ -111,10 +114,10 @@ export const Dot = styled.span`
 `;
 
 export const LoadingText = styled.p`
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.9rem;
-  color: #6b7280;
-  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: #64748b;
+  font-weight: 600;
   margin: 0;
   letter-spacing: 0.01em;
 `;

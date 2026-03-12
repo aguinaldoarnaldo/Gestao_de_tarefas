@@ -78,7 +78,7 @@ exports.deleteUser = async (req, res) => {
 // PUT /api/users/profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { nome, email } = req.body;
+    const { nome, email, telefone, biografia, localizacao } = req.body;
     const userId = req.user.id;
     
     if (email) {
@@ -88,7 +88,13 @@ exports.updateProfile = async (req, res) => {
       }
     }
     
-    await User.update(userId, { nome, email });
+    const updateData = { nome, email, telefone, biografia, localizacao };
+
+    if (req.file) {
+      updateData.avatar = `uploads/${req.file.filename}`;
+    }
+    
+    await User.update(userId, updateData);
     const updatedUser = await User.findById(userId);
     
     res.json({

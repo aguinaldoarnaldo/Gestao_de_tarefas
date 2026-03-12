@@ -10,12 +10,13 @@
   --border-radius: 12px;
 }
 
+
 .login-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top left, #f8fafc, #eef2ff);
+  background: transparent;
   padding: 2rem;
   font-family: 'Inter', sans-serif;
   position: relative;

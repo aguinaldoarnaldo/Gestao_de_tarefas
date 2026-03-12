@@ -10,7 +10,10 @@ export const LayoutContainer = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f4f7fc;
+  background-color: #f7fafc;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 0);
+  background-size: 20px 20px;
+  background-attachment: fixed;
   color: #0d2137;
 `;
 
@@ -209,6 +212,7 @@ export const UserBtn = styled.div`
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.07);
   margin-left: 0.25rem;
+  position: relative;
 
   &:hover {
     background: rgba(255,255,255,0.14);
@@ -228,6 +232,13 @@ export const UserAvatar = styled.div`
   font-weight: 800;
   font-size: 0.82rem;
   flex-shrink: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 export const UserName = styled.span`
@@ -238,10 +249,70 @@ export const UserName = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 
   @media (max-width: 768px) {
     display: none;
   }
+`;
+
+export const UserDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 200px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem;
+  display: ${props => props.$show ? 'flex' : 'none'};
+  flex-direction: column;
+  z-index: 2000;
+  animation: slideDown 0.2s ease-out;
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+export const DropdownItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  color: #1e293b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  svg {
+    color: #64748b;
+    transition: color 0.2s;
+  }
+
+  &:hover {
+    background: #f1f5f9;
+    color: #0d2137;
+    svg { color: #0d2137; }
+  }
+
+  &.danger {
+    color: #ef4444;
+    svg { color: #ef4444; }
+    &:hover { background: #fef2f2; }
+  }
+`;
+
+export const DropdownDivider = styled.div`
+  height: 1px;
+  background: #f1f5f9;
+  margin: 0.4rem 0.5rem;
 `;
 
 // ─── Mobile Menu ─────────────────────────────────────────────
@@ -309,7 +380,7 @@ export const MobileOverlay = styled.div`
 export const PageContent = styled.main`
   flex: 1;
   overflow-y: auto;
-  background: #f4f7fc;
+  background: transparent;
   min-height: calc(100vh - 98px);
 `;
 

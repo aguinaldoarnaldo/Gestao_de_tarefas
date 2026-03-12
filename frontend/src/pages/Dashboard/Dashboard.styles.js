@@ -6,7 +6,8 @@ export const KanbanBoard = styled.div`
   gap: 1.25rem;
   overflow-x: auto;
   min-height: calc(100vh - 98px - 52px); /* SubNav + FilterBar */
-  background: ${props => props.$bg ? `linear-gradient(rgba(13,33,55,0.1), rgba(13,33,55,0.4)), url(${props.$bg})` : '#f1f5f9'};
+  background-color: transparent;
+  background-image: ${props => props.$bg ? `linear-gradient(rgba(13,33,55,0.1), rgba(13,33,55,0.4)), url(${props.$bg})` : 'none'};
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

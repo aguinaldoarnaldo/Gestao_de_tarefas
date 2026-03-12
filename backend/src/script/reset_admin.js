@@ -1,4 +1,4 @@
-const db = require('./backend/src/config/database');
+const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 async function updateAdminPassword() {
