@@ -1,77 +1,91 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, Lock, Save, CheckCircle, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Mail, Phone, MapPin, AlignLeft, Save, CheckCircle, Camera, Loader2, Edit2, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 import './Profile.css';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
+  const fileInputRef = useRef(null);
+  
   const [formData, setFormData] = useState({
     nome: '',
-    email: ''
+    email: '',
+    telefone: '',
+    biografia: '',
+    localizacao: ''
   });
+  
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
-  const [stats, setStats] = useState({
-    totalTasks: 0,
-    completedTasks: 0,
-    pendingTasks: 0,
-    inProgressTasks: 0
-  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalData, setOriginalData] = useState({});
 
   useEffect(() => {
     if (user) {
-      setFormData({
+      const data = {
         nome: user.nome || '',
-        email: user.email || ''
-      });
-      fetchUserStats();
+        email: user.email || '',
+        telefone: user.telefone || '',
+        biografia: user.biografia || '',
+        localizacao: user.localizacao || ''
+      };
+      setFormData(data);
+      setOriginalData(data);
     }
   }, [user]);
 
-  const fetchUserStats = async () => {
-    try {
-      const tasks = await apiService.getTasks();
-      setStats({
-        totalTasks: tasks.length,
-        completedTasks: tasks.filter(t => t.status === 'Concluída').length,
-        pendingTasks: tasks.filter(t => t.status === 'Pendente').length,
-        inProgressTasks: tasks.filter(t => t.status === 'Em Andamento').length
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
+  const handleEdit = () => {
+    setIsEditing(true);
+    setErrors({});
   };
 
-  const handleProfileChange = (e) => {
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFormData(originalData);
+    setAvatarPreview(null);
+    setAvatarFile(null);
+    setErrors({});
+  };
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setAvatarPreview(reader.result);
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleProfileSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newErrors = {};
-    
-    if (!formData.nome.trim()) {
-      newErrors.nome = 'Nome é obrigatório';
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email é obrigatório';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+    if (!formData.nome.trim()) return setErrors({ nome: 'Nome é obrigatório' });
+    if (!formData.email.trim()) return setErrors({ email: 'Email é obrigatório' });
 
     setIsSubmitting(true);
     try {
-      await apiService.updateUserProfile(formData);
-      setSuccess('Perfil atualizado com sucesso!');
+      const updateData = new FormData();
+      Object.keys(formData).forEach(key => updateData.append(key, formData[key]));
+      if (avatarFile) updateData.append('avatar', avatarFile);
+
+      const response = await apiService.updateUserProfile(updateData);
+      if (setUser && response.user) setUser(response.user);
+      
+      setSuccess('Perfil atualizado!');
+      setAvatarFile(null);
+      setIsEditing(false);
+      const saved = { ...formData };
+      setOriginalData(saved);
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       setErrors({ submit: error.message });
@@ -80,101 +94,95 @@ const Profile = () => {
     }
   };
 
-  if (!user) {
-    return <div className="loading-profile">Carregando...</div>;
-  }
+  if (!user) return <div className="profile-simple-loading"><Loader2 className="spin" /></div>;
 
   return (
-    <div className="profile-page">
-      <div className="profile-header">
-        <div className="profile-avatar-large">
-          {user.nome.substring(0, 2).toUpperCase()}
-        </div>
-        <div>
-          <h2 style={{ color: 'white', margin: 0 }}>{user.nome}</h2>
-          <p className="profile-role">Utilizador</p>
-        </div>
-      </div>
+    <div className="profile-simple-container">
+      <div className="profile-simple-card">
+        <div className="profile-simple-header">
+          <div className="simple-avatar-section">
+            <div className="simple-avatar-circle">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Preview" />
+              ) : user.avatar ? (
+                <img src={apiService.getImageUrl(user.avatar)} alt={user.nome} />
+              ) : (
+                user.nome.substring(0, 1).toUpperCase()
+              )}
+            </div>
+        {/* Botão de mudar foto só aparece em modo de edição */}
+            {isEditing && (
+              <>
+                <button className="simple-avatar-btn" onClick={() => fileInputRef.current.click()}>
+                  <Camera size={16} /> Mudar foto
+                </button>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
+              </>
+            )}
+          </div>
+          
+          <div className="simple-title-section">
+            <h1>Meu Perfil</h1>
+            <p>Gerencie suas informações de conta</p>
+          </div>
 
-      {success && (
-        <div className="success-banner">
-          <CheckCircle size={18} />
-          {success}
+          {/* Botão de Editar - visível apenas quando NÃO está a editar */}
+          {!isEditing && (
+            <button type="button" className="simple-btn-edit" onClick={handleEdit}>
+              <Edit2 size={16} /> Editar Perfil
+            </button>
+          )}
         </div>
-      )}
 
-      <div className="profile-grid">
-        <div className="profile-section stats-section">
-          <h2>
-            <BarChart3 size={20} />
-            Estatísticas
-          </h2>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-value">{stats.totalTasks}</div>
-              <div className="stat-label">Total de Tarefas</div>
+        {success && (
+          <div className="simple-success-msg">
+            <CheckCircle size={18} /> {success}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="simple-form">
+          {errors.submit && <div className="simple-error-msg">{errors.submit}</div>}
+
+          <div className="simple-field">
+            <label><User size={15} /> Nome</label>
+            <input type="text" name="nome" value={formData.nome} onChange={handleChange} className={errors.nome ? 'error' : ''} readOnly={!isEditing} />
+            {errors.nome && <span className="field-err">{errors.nome}</span>}
+          </div>
+
+          <div className="simple-field">
+            <label><Mail size={15} /> Email</label>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} className={errors.email ? 'error' : ''} readOnly={!isEditing} />
+            {errors.email && <span className="field-err">{errors.email}</span>}
+          </div>
+
+          <div className="simple-row">
+            <div className="simple-field">
+              <label><Phone size={15} /> Telefone</label>
+              <input type="text" name="telefone" value={formData.telefone} onChange={handleChange} placeholder="Opcional" readOnly={!isEditing} />
             </div>
-            <div className="stat-card">
-              <div className="stat-value stat-completed">{stats.completedTasks}</div>
-              <div className="stat-label">Concluídas</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value stat-progress">{stats.inProgressTasks}</div>
-              <div className="stat-label">Em Andamento</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value stat-pending">{stats.pendingTasks}</div>
-              <div className="stat-label">Pendentes</div>
+            <div className="simple-field">
+              <label><MapPin size={15} /> Localização</label>
+              <input type="text" name="localizacao" value={formData.localizacao} onChange={handleChange} placeholder="Opcional" readOnly={!isEditing} />
             </div>
           </div>
-        </div>
 
-        <div className="profile-section">
-          <h2>
-            <User size={20} />
-            Informações do Perfil
-          </h2>
-          <form onSubmit={handleProfileSubmit}>
-            {errors.submit && (
-              <div className="error-banner">{errors.submit}</div>
-            )}
-            
-            <div className="form-group">
-              <label>Nome Completo</label>
-              <div className="input-icon">
-                <User size={18} />
-                <input
-                  type="text"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleProfileChange}
-                  className={errors.nome ? 'error' : ''}
-                />
-              </div>
-              {errors.nome && <span className="error-msg">{errors.nome}</span>}
+          <div className="simple-field">
+            <label><AlignLeft size={15} /> Sobre mim</label>
+            <textarea name="biografia" value={formData.biografia} onChange={handleChange} rows={3} placeholder="Conte um pouco sobre você..." readOnly={!isEditing} />
+          </div>
+
+          {/* Botões de ação — só visíveis em modo de edição */}
+          {isEditing && (
+            <div className="simple-actions">
+              <button type="button" className="simple-btn-cancel" onClick={handleCancel}>
+                <X size={16} /> Cancelar
+              </button>
+              <button type="submit" className="simple-btn-save" disabled={isSubmitting}>
+                {isSubmitting ? 'Salvando...' : <><Save size={16} /> Salvar Alterações</>}
+              </button>
             </div>
-
-            <div className="form-group">
-              <label>Email</label>
-              <div className="input-icon">
-                <Mail size={18} />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleProfileChange}
-                  className={errors.email ? 'error' : ''}
-                />
-              </div>
-              {errors.email && <span className="error-msg">{errors.email}</span>}
-            </div>
-
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
-              <Save size={18} />
-              {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
-            </button>
-          </form>
-        </div>
+          )}
+        </form>
       </div>
     </div>
   );
