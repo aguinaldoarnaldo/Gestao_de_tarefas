@@ -3,9 +3,11 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
+const upload = require('../config/multer');
+
 // Public routes
 router.get('/profile', authMiddleware, userController.getProfile);
-router.put('/profile', authMiddleware, userController.updateProfile);
+router.put('/profile', authMiddleware, upload.single('avatar'), userController.updateProfile);
 router.get('/', authMiddleware, userController.getAllUsers);
 
 // Admin or Self management routes

@@ -111,7 +111,7 @@ export const TaskDetailsOverlay = styled.div`
 
 export const TaskDetailsModal = styled.div`
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 16px;
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
@@ -164,6 +164,13 @@ export const ModalCloseButton = styled.button`
 export const ModalBody = styled.div`
   padding: 2rem;
   overflow-y: auto;
+  
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
   display: grid;
   grid-template-columns: 1.8fr 1fr;
   gap: 2rem;
@@ -178,6 +185,7 @@ export const MainContentArea = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
 `;
 
 export const TaskInfo = styled.div`
@@ -201,6 +209,10 @@ export const TaskInfo = styled.div`
     font-size: 0.9rem;
     line-height: 1.6;
     white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 `;
 

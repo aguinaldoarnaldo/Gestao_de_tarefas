@@ -47,6 +47,7 @@ backend/
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/auth/register` | Criar nova conta | ❌ |
 | `POST` | `/api/auth/login` | Iniciar sessão + obter token | ❌ |
+| `POST` | `/api/auth/forgot-password` | Simular recuperação de senha com e-mail no terminal | ❌ |
 
 ### Utilizadores — `/api/users`
 
@@ -60,8 +61,8 @@ backend/
 | Método | Rota | Descrição | Auth |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/boards` | Listar quadros do utilizador | ✅ |
-| `POST` | `/api/boards` | Criar novo quadro | ✅ |
-| `PUT` | `/api/boards/:id` | Atualizar quadro | ✅ |
+| `POST` | `/api/boards` | Criar novo quadro (c/ ou s/ foto) | ✅ |
+| `PUT` | `/api/boards/:id` | Atualizar quadro (c/ ou s/ foto) | ✅ |
 | `DELETE` | `/api/boards/:id` | Eliminar quadro | ✅ |
 
 ### Tarefas — `/api/tasks`
@@ -97,7 +98,7 @@ Tarefa     (1) ──── (N) Anexo
 | Tabela | Campos relevantes |
 | :--- | :--- |
 | `utilizadores` | `id`, `nome`, `email`, `senha`, `criado_em` |
-| `quadros` | `id`, `nome`, `descricao`, `utilizador_id`, `criado_em` |
+| `quadros` | `id`, `nome`, `descricao`, `foto_fundo`, `utilizador_id`, `criado_em` |
 | `tarefas` | `id`, `titulo`, `descricao`, `status`, `prioridade`, `data_vencimento`, `quadro_id`, `utilizador_id` |
 | `anexos` | `id`, `nome_ficheiro`, `caminho`, `tamanho`, `tarefa_id`, `criado_em` |
 

@@ -12,9 +12,16 @@ exports.createBoard = async (req, res) => {
       criador_id: req.user.id,
       foto_fundo
     });
-    res.status(201).json({ message: 'Quadro criado com sucesso!', boardId });
+
+    const newBoard = await Board.getById(boardId);
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('boards_list_changed', { type: 'create', board: newBoard });
+    }
+
+    res.status(201).json({ message: 'Quadro criado com sucesso!', boardId, board: newBoard });
   } catch (error) {
-    console.error(error);
+    console.error('Create Board Error:', error);
     res.status(500).json({ message: 'Erro ao criar quadro.' });
   }
 };
@@ -63,12 +70,34 @@ exports.updateBoard = async (req, res) => {
       return res.status(403).json({ message: 'Ação não permitida. Apenas o criador do quadro pode editá-lo.' });
     }
 
-    const foto_fundo = req.file ? `uploads/${req.file.filename}` : board.foto_fundo;
+    let foto_fundo = board.foto_fundo;
+    if (req.file) {
+      foto_fundo = `uploads/${req.file.filename}`;
+    } else if (board.foto_fundo && board.foto_fundo.includes('http')) {
+      // If it accidentally became a full URL, strip it back to relative
+      foto_fundo = board.foto_fundo.split('/uploads/')[1] ? `uploads/${board.foto_fundo.split('/uploads/')[1]}` : board.foto_fundo;
+    }
 
     await Board.update(id, { nome, descricao, foto_fundo });
-    res.json({ message: 'Quadro atualizado com sucesso!' });
+    
+    // Get the updated board to return it
+    const updatedBoard = await Board.getById(id);
+
+    // Notify via Socket.io
+    const io = req.app.get('io');
+    if (io) {
+      // Notify everyone in the board room
+      io.to(`board_${id}`).emit('board_updated', updatedBoard);
+      // Also notify generally that a board changed (for the boards list)
+      io.emit('boards_list_changed', { type: 'update', boardId: id });
+    }
+
+    res.json({ 
+      message: 'Quadro atualizado com sucesso!', 
+      board: updatedBoard 
+    });
   } catch (error) {
-    console.error(error);
+    console.error('Update Board Error:', error);
     res.status(500).json({ message: 'Erro ao atualizar quadro.' });
   }
 };
@@ -86,9 +115,16 @@ exports.deleteBoard = async (req, res) => {
     }
 
     await Board.delete(id);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`board_${id}`).emit('board_deleted', { id });
+      io.emit('boards_list_changed', { type: 'delete', boardId: id });
+    }
+
     res.json({ message: 'Quadro excluído com sucesso!' });
   } catch (error) {
-    console.error(error);
+    console.error('Delete Board Error:', error);
     res.status(500).json({ message: 'Erro ao excluir quadro.' });
   }
 };

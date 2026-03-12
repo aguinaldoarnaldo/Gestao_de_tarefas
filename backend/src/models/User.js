@@ -16,7 +16,10 @@ const User = {
   },
 
   findById: async (id) => {
-    const [rows] = await db.query('SELECT id, nome, email FROM utilizador WHERE id = ?', [id]);
+    const [rows] = await db.query(
+      'SELECT id, nome, email, telefone, biografia, localizacao, avatar, data_criacao FROM utilizador WHERE id = ?', 
+      [id]
+    );
     return rows[0];
   },
 
@@ -26,13 +29,13 @@ const User = {
   },
 
   getAll: async () => {
-    const [rows] = await db.query('SELECT id, nome, email FROM utilizador');
+    const [rows] = await db.query('SELECT id, nome, email, avatar FROM utilizador');
     return rows;
   },
 
   searchByNome: async (nome) => {
     const [rows] = await db.query(
-      'SELECT id, nome, email FROM utilizador WHERE nome LIKE ?',
+      'SELECT id, nome, email, avatar FROM utilizador WHERE nome LIKE ?',
       [`%${nome}%`]
     );
     return rows;
@@ -54,7 +57,25 @@ const User = {
       fields.push('senha = ?');
       values.push(userData.senha);
     }
+    if (userData.telefone !== undefined) {
+      fields.push('telefone = ?');
+      values.push(userData.telefone);
+    }
+    if (userData.biografia !== undefined) {
+      fields.push('biografia = ?');
+      values.push(userData.biografia);
+    }
+    if (userData.localizacao !== undefined) {
+      fields.push('localizacao = ?');
+      values.push(userData.localizacao);
+    }
+    if (userData.avatar !== undefined) {
+      fields.push('avatar = ?');
+      values.push(userData.avatar);
+    }
     
+    if (fields.length === 0) return;
+
     values.push(id);
     
     await db.query(

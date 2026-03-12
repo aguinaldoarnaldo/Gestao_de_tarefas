@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   CheckCircle,
@@ -8,7 +8,9 @@ import {
   LogOut,
   Search,
   Menu,
-  X
+  X,
+  User as UserIcon,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -24,12 +26,18 @@ import {
   UserBtn,
   UserAvatar,
   UserName,
+  UserDropdown,
+  DropdownItem,
+  DropdownDivider,
   MobileMenuBtn,
   MobileDrawer,
   MobileNavItem,
   MobileOverlay,
   PageContent
 } from './MainLayout.styles';
+
+import apiService from '../../services/api';
+import LoadingScreen from '../LoadingScreen/LoadingScreen';
 
 const menuItems = [
   { icon: <Layout size={16} />, label: 'Meus Quadros', path: '/boards' },
@@ -43,20 +51,42 @@ const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const confirmLogout = () => {
-    logout();
-    navigate('/login');
     setShowLogoutConfirm(false);
+    setIsLoggingOut(true);
+    
+    // Simulate a brief loading sequence before actually logging out
+    setTimeout(() => {
+      logout();
+      navigate('/login');
+    }, 1500);
   };
 
   const handleNav = (path) => {
     navigate(path);
     setMobileOpen(false);
+    setDropdownOpen(false);
   };
+
+  const userAvatarUrl = apiService.getImageUrl(user?.avatar);
 
   return (
     <LayoutContainer>
+      {isLoggingOut && <LoadingScreen message="A terminar sessão..." />}
       {/* ══ HEADER — Logo + Search + User ═══════════════════════ */}
       <TopNav>
         <MobileMenuBtn onClick={() => setMobileOpen(o => !o)}>
@@ -78,32 +108,39 @@ const MainLayout = ({ children }) => {
         </NavSearch>
 
         <NavRight>
-          <UserBtn onClick={() => navigate('/profile')}>
-            <UserAvatar>
-              {user?.nome ? user.nome.substring(0, 1).toUpperCase() : 'U'}
-            </UserAvatar>
-            <UserName>{user?.nome || 'Utilizador'}</UserName>
-          </UserBtn>
-
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            title="Sair"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '34px',
-              height: '34px',
-              background: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              color: '#fca5a5',
-              transition: 'all 0.2s'
-            }}
+          <UserBtn 
+            ref={dropdownRef} 
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            title="Menu do utilizador"
           >
-            <LogOut size={16} />
-          </button>
+            <UserAvatar>
+              {userAvatarUrl ? (
+                <img src={userAvatarUrl} alt={user?.nome} />
+              ) : (
+                user?.nome ? user.nome.substring(0, 1).toUpperCase() : 'U'
+              )}
+            </UserAvatar>
+            <UserName>
+              {user?.nome || 'Utilizador'}
+              <ChevronDown size={14} style={{ opacity: 0.7, marginLeft: 2 }} />
+            </UserName>
+
+            <UserDropdown $show={dropdownOpen}>
+              <DropdownItem onClick={() => handleNav('/profile')}>
+                <UserIcon size={16} /> Meu Perfil
+              </DropdownItem>
+              <DropdownItem onClick={() => handleNav('/settings')}>
+                <Settings size={16} /> Configurações
+              </DropdownItem>
+              <DropdownDivider />
+              <DropdownItem className="danger" onClick={() => {
+                setDropdownOpen(false);
+                setShowLogoutConfirm(true);
+              }}>
+                <LogOut size={16} /> Sair
+              </DropdownItem>
+            </UserDropdown>
+          </UserBtn>
         </NavRight>
       </TopNav>
 

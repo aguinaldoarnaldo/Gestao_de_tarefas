@@ -47,12 +47,12 @@ Gestao_de_tarefas/
 
 ## ✨ Funcionalidades Principais
 
-- 📌 **Quadros Kanban** — criação de múltiplos quadros de trabalho por utilizador
-- ✅ **Tarefas** — criação, edição, filtragem por prioridade/status, ordenação por data
+- 📌 **Quadros Kanban** — criação de múltiplos quadros de trabalho por utilizador, incluindo capas e imagens de fundo personalizadas
+- ✅ **Tarefas** — criação, edição, filtragem por prioridade/status, ordenação por data e comentários
 - 📎 **Anexos** — upload e download de ficheiros associados a tarefas
 - 📅 **Calendário** — visualização de tarefas por data de vencimento
-- ⚙️ **Configurações** — edição de perfil, preferências de notificação e aparência
-- 🔐 **Autenticação** — registo, login e sessões separadas por aba do browser
+- ⚙️ **Configurações** — edição de perfil e aparência
+- 🔐 **Autenticação** — registo, login, recuperação de palavra-passe e sessões seguras
 
 ---
 
@@ -123,8 +123,10 @@ Cada utilizador é o único proprietário das suas próprias tarefas e quadros:
 | :--- | :--- | :--- |
 | `POST` | `/api/auth/register` | Criar conta |
 | `POST` | `/api/auth/login` | Iniciar sessão |
+| `POST` | `/api/auth/forgot-password` | Pedido de recuperação de palavra-passe |
 | `GET` | `/api/boards` | Listar quadros do utilizador |
 | `POST` | `/api/boards` | Criar quadro |
+| `PUT` | `/api/boards/:id` | Atualizar quadro (incluindo foto de fundo) |
 | `DELETE` | `/api/boards/:id` | Eliminar quadro |
 | `GET` | `/api/tasks` | Listar tarefas (filtros opcionais) |
 | `POST` | `/api/tasks` | Criar tarefa |

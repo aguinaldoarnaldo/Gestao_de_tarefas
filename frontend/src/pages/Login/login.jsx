@@ -11,7 +11,7 @@ const LoginContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: transparent;
   padding: 20px;
 `;
 
@@ -254,6 +254,14 @@ const Login = () => {
       // 1. Faz login no banco de dados
       await login(formData.email, formData.senha);
 
+      // "Lembrar de mim" — guarda o token em localStorage para persistir entre sessões
+      if (formData.rememberMe) {
+        const token = sessionStorage.getItem('token');
+        if (token) {
+          localStorage.setItem('token', token);
+        }
+      }
+
       // 2. Aguarda um tempo mínimo para não ser brusco (premium feel)
       await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -348,7 +356,7 @@ const Login = () => {
               />
               Lembrar de mim
             </RememberMe>
-            <ForgotPassword to="#">Esqueceu a senha?</ForgotPassword>
+            <ForgotPassword to="/recuperar-senha">Esqueceu a senha?</ForgotPassword>
           </FormOptions>
 
           <LoginButton type="submit" disabled={isLoading}>

@@ -3,6 +3,7 @@ import { Plus, Trash2, ArrowUpRight, LayoutGrid, Loader2, CheckCircle2, AlertCir
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
+import socketService from '../../services/socket';
 import './Boards.css';
 
 const ACCENTS = ['#2a7de1','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#14b8a6'];
@@ -66,16 +67,20 @@ const Boards = () => {
   useEffect(() => {
     if (user) {
       fetchBoards(true);
+      
+      const socket = socketService.connect();
+      socket.on('boards_list_changed', () => {
+        fetchBoards(false);
+      });
+
+      return () => {
+        socket.off('boards_list_changed');
+      };
     }
   }, [fetchBoards, user]);
 
-  if (loading && !boards.length && !user) {
-    return (
-      <div className="bp-loading">
-        <Loader2 size={32} className="bp-spin"/> Verificando autenticação...
-      </div>
-    );
-  }
+  // Page is protected by ProtectedRoute, so user is guaranteed to be present.
+
 
   /* ── Open edit modal ──────────────────────────────── */
   const openEditModal = (board, e) => {
@@ -106,10 +111,15 @@ const Boards = () => {
       fd.append('descricao', newBoard.descricao || '');
       if (newBoard.foto_fundo) fd.append('foto_fundo', newBoard.foto_fundo);
 
+      let response;
       if (editingBoard) {
-        await apiService.updateBoard(editingBoard.id, fd);
+        response = await apiService.updateBoard(editingBoard.id, fd);
+        // Instant update local
+        setBoards(prev => prev.map(b => b.id === editingBoard.id ? { ...b, ...response.board } : b));
       } else {
-        await apiService.createBoard(fd);
+        response = await apiService.createBoard(fd);
+        // Instant update local
+        if (response.board) setBoards(prev => [response.board, ...prev]);
       }
 
       // 1. Close the modal
@@ -122,8 +132,8 @@ const Boards = () => {
           : `✓ Quadro "${savedName}" criado com sucesso!`
       );
 
-      // 3. Refresh list in background (no spinner)
-      await fetchBoards(false);
+      // 3. Refresh list in background to ensure sync
+      fetchBoards(false);
 
     } catch (err) {
       console.error('handleSave error:', err);
@@ -139,8 +149,8 @@ const Boards = () => {
     if (!confirm('Eliminar este quadro e todas as suas tarefas?')) return;
     try {
       await apiService.deleteBoard(id);
+      setBoards(prev => prev.filter(b => b.id !== id));
       showToast('Quadro eliminado.');
-      await fetchBoards(false);
     } catch (err) {
       showToast(err.message || 'Erro ao eliminar', 'error');
     }
@@ -210,7 +220,7 @@ const Boards = () => {
                   '--accent': accent,
                   '--accent-faint': `${accent}15`,
                   backgroundImage: board.foto_fundo
-                    ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(http://localhost:5000/${board.foto_fundo})`
+                    ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(${apiService.getImageUrl(board.foto_fundo)})`
                     : 'none'
                 }}
                 onClick={() => navigate(`/dashboard?boardId=${board.id}`)}
@@ -305,7 +315,7 @@ const Boards = () => {
                 <label>Foto de Fundo <em>(opcional)</em></label>
                 {editingBoard && editingBoard.foto_fundo && (
                   <div className="bp-current-bg">
-                    <img src={`http://localhost:5000/${editingBoard.foto_fundo}`} alt="Fundo atual" />
+                    <img src={apiService.getImageUrl(editingBoard.foto_fundo)} alt="Fundo atual" />
                     <span>Fundo atual</span>
                   </div>
                 )}
