@@ -48,7 +48,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/boards', require('./routes/boardRoutes'));
 app.use('/api/attachments', require('./routes/attachmentRoutes'));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/', (req, res) => {
   res.send('API de Gestão de Tarefas está rodando!');

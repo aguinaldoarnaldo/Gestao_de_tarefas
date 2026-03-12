@@ -14,7 +14,21 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(() => sessionStorage.getItem('token'));
+  const [token, setToken] = useState(() => {
+    // Tenta primeiro na sessão atual
+    let savedToken = sessionStorage.getItem('token');
+    
+    // Se não houver, verifica no localStorage (Lembrar de mim)
+    if (!savedToken) {
+      savedToken = localStorage.getItem('token');
+      // Se encontrou no localStorage, copia para a sessão atual para que o apiService o encontre
+      if (savedToken) {
+        sessionStorage.setItem('token', savedToken);
+      }
+    }
+    
+    return savedToken;
+  });
 
   useEffect(() => {
     if (token) {
@@ -85,12 +99,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
     setToken(null);
     setUser(null);
   };
 
   const value = {
     user,
+    setUser,
     token,
     loading,
     login,

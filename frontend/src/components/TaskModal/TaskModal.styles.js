@@ -17,13 +17,13 @@ export const ModalOverlay = styled.div`
 `;
 
 export const ModalContainer = styled.div`
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   width: 100%;
   max-width: 650px;
   max-height: 90vh;
-  border-radius: 32px;
+  border-radius: 16px;
   overflow-y: auto;
   box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -47,12 +47,11 @@ export const ModalContainer = styled.div`
     to { opacity: 1; transform: scale(1) translateY(0); }
   }
 
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #dfe1e6;
-    border-radius: 10px;
+    display: none;
   }
 `;
 
@@ -75,7 +74,7 @@ export const ModalHeader = styled.div`
     letter-spacing: -0.02em;
 
     @media (max-width: 480px) {
-      font-size: 1.25rem;
+      font-size: 1.4rem;
     }
   }
 `;
@@ -146,13 +145,15 @@ export const FormGroup = styled.div`
   `}
 
   input, textarea, select {
-    padding: 12px 16px;
+    padding: 14px 16px;
     border: 1px solid #e2e8f0;
     border-radius: 14px;
     font-size: 0.95rem;
+    color: #0f172a;
     background: #fdfdfd;
     outline: none;
     transition: all 0.2s;
+    font-family: inherit;
 
     &:focus {
       border-color: #0061ff;

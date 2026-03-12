@@ -1,4 +1,4 @@
-const db = require('./backend/src/config/database');
+const db = require('../config/database');
 
 async function findLostTasks() {
     try {

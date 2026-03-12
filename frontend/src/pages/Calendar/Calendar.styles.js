@@ -4,7 +4,7 @@ export const CalendarPage = styled.div`
   display: flex;
   gap: 1.5rem;
   padding: 1.5rem 2rem;
-  background: #f8fafc;
+  background: transparent;
   min-height: calc(100vh - 98px);
   box-sizing: border-box;
 

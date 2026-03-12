@@ -17,7 +17,7 @@ const LoadingScreen = ({ fadeOut, message }) => {
     <LoadingContainer className={fadeOut ? 'fade-out' : ''}>
       <LoadingContent>
         <LogoPulse>
-          <CheckCircle size={40} color="white" />
+          <CheckCircle size={44} color="white" />
         </LogoPulse>
 
         <BrandName>TaskFlow</BrandName>

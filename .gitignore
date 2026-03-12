@@ -54,3 +54,6 @@ frontend/dist/
 frontend/node_modules/
 frontend/.env
 frontend/.env.local
+
+# Internal/Private Documentation (never commit to GitHub)
+INTERNAL_NOTES.md

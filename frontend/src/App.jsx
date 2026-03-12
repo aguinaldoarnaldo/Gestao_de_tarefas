@@ -13,6 +13,8 @@ import Calendar from './pages/Calendar/Calendar';
 import Settings from './pages/Settings/Settings';
 import LoadingScreen from './components/LoadingScreen/LoadingScreen';
 import MainLayout from './components/MainLayout/MainLayout';
+import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
+import ResetPassword from './pages/ResetPassword/ResetPassword';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +27,7 @@ function App() {
       setTimeout(() => {
         setIsLoading(false);
       }, 300); // Snappier fade
-    }, 400); // Shorter initial load
+    }, 800); // More elegant initial load duration
 
     return () => clearTimeout(timer);
   }, []);
@@ -53,6 +55,24 @@ function App() {
               element={
                 <PublicRoute>
                   <Register />
+                </PublicRoute>
+              } 
+            />
+
+            <Route 
+              path="/recuperar-senha" 
+              element={
+                <PublicRoute>
+                  <ForgotPassword />
+                </PublicRoute>
+              } 
+            />
+
+            <Route 
+              path="/reset-password" 
+              element={
+                <PublicRoute>
+                  <ResetPassword />
                 </PublicRoute>
               } 
             />

@@ -166,7 +166,7 @@ const Register = () => {
           </label>
           {errors.acceptTerms && <span className="error-msg">{errors.acceptTerms}</span>}
 
-          <button type="submit" className="register-btn" disabled={isLoading}>
+          <button type="submit" className="register-btn" disabled={isLoading || !formData.acceptTerms}>
             {isLoading ? <Loader2 className="spinner" size={20} /> : <UserPlus size={20} />}
             {isLoading ? 'Criando conta...' : 'Registrar agora'}
           </button>
