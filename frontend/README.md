@@ -67,6 +67,7 @@ O frontend utiliza um tema **Azul Escuro + Branco** consistente:
 | :--- | :--- | :--- |
 | `/login` | `Login` | Público |
 | `/register` | `Register` | Público |
+| `/recuperar-senha` | `ForgotPassword` | Público |
 | `/boards` | `Boards` | Protegido |
 | `/dashboard` | `Dashboard` | Protegido |
 | `/calendar` | `Calendar` | Protegido |
